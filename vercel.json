@@ -1,21 +1,4 @@
 {
-  "version": 2,
-  "buildCommand": "npm run build:vercel",
-  "installCommand": "npm install",
-  "builds": [
-    {
-      "src": "api/[...path].js",
-      "use": "@vercel/node",
-      "config": { "maxDuration": 60 }
-    },
-    {
-      "src": "frontend/dist/frontend/browser/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/[...path].js" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  "buildCommand": "npm run build:vercel-output",
+  "installCommand": "npm install"
 }

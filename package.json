@@ -13,6 +13,7 @@
     "dev:frontend": "npm run start --workspace frontend",
     "build": "npm run build --workspace backend && npm run build --workspace frontend",
     "build:vercel": "npm run prisma:generate && npm run build --workspace backend && npm run build:prod --workspace frontend",
+    "build:vercel-output": "npm run build:vercel && node scripts/prepare-vercel-output.js",
     "lint": "npm run lint --workspace backend && npm run lint --workspace frontend",
     "prisma:generate": "npm run prisma:generate:master --workspace backend && npm run prisma:generate:tenant --workspace backend",
     "prisma:seed": "npm run prisma:seed --workspace backend",
@@ -20,5 +21,8 @@
     "atlas:master:apply": "npm run atlas:master:apply --workspace backend",
     "atlas:tenant:diff": "npm run atlas:tenant:diff --workspace backend",
     "atlas:tenant:apply": "npm run atlas:tenant:apply --workspace backend"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3"
   }
 }
