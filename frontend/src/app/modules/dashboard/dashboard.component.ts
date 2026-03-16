@@ -1,10 +1,11 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { ActivitiesService } from '../../core/services/activities.service';
 import { CustomersService } from '../../core/services/customers.service';
 import { DealsService } from '../../core/services/deals.service';
@@ -19,8 +20,8 @@ import {
 @Component({
   selector: 'crm-dashboard',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
     MatCardModule,
     MatTableModule,
     MatIconModule,
@@ -136,131 +137,72 @@ import {
     }
   `],
   template: `
-    <div *ngIf="loading" class="loading-center">
-      <mat-spinner diameter="48" />
-    </div>
-
-    <ng-container *ngIf="!loading">
-      <!-- ── Stat Cards ───────────────────────────────────────── -->
+    @if (loading) {
+      <div class="loading-center"><mat-spinner diameter="48" /></div>
+    } @else {
+      <!-- ── Stat Cards ── -->
       <div class="stat-cards">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#eff6ff">
-            <mat-icon style="color:#3b82f6">people</mat-icon>
-          </div>
-          <div>
-            <div class="stat-value">{{ summary.totalCustomers }}</div>
-            <div class="stat-label">Total Customers</div>
-          </div>
+          <div class="stat-icon" style="background:#eff6ff"><mat-icon style="color:#3b82f6">people</mat-icon></div>
+          <div><div class="stat-value">{{ summary.totalCustomers }}</div><div class="stat-label">Total Customers</div></div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-icon" style="background:#f0fdf4">
-            <mat-icon style="color:#22c55e">handshake</mat-icon>
-          </div>
-          <div>
-            <div class="stat-value">{{ summary.activeDeals }}</div>
-            <div class="stat-label">Active Deals</div>
-          </div>
+          <div class="stat-icon" style="background:#f0fdf4"><mat-icon style="color:#22c55e">handshake</mat-icon></div>
+          <div><div class="stat-value">{{ summary.activeDeals }}</div><div class="stat-label">Active Deals</div></div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-icon" style="background:#fefce8">
-            <mat-icon style="color:#eab308">attach_money</mat-icon>
-          </div>
-          <div>
-            <div class="stat-value">{{ summary.revenuePipeline | currency: 'USD':'symbol':'1.0-0' }}</div>
-            <div class="stat-label">Revenue Pipeline</div>
-          </div>
+          <div class="stat-icon" style="background:#fefce8"><mat-icon style="color:#eab308">attach_money</mat-icon></div>
+          <div><div class="stat-value">{{ summary.revenuePipeline | currency: 'USD':'symbol':'1.0-0' }}</div><div class="stat-label">Revenue Pipeline</div></div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-icon" style="background:#fdf4ff">
-            <mat-icon style="color:#a855f7">event_note</mat-icon>
-          </div>
-          <div>
-            <div class="stat-value">{{ activities.length }}</div>
-            <div class="stat-label">Recent Activities</div>
-          </div>
+          <div class="stat-icon" style="background:#fdf4ff"><mat-icon style="color:#a855f7">event_note</mat-icon></div>
+          <div><div class="stat-value">{{ activities.length }}</div><div class="stat-label">Recent Activities</div></div>
         </div>
       </div>
 
-      <!-- ── Data Tables ─────────────────────────────────────── -->
+      <!-- ── Data Tables ── -->
       <div class="tables-row">
-
-        <!-- Customers -->
         <div class="section-card">
-          <div class="section-header">
-            <mat-icon>people</mat-icon>
-            <span class="section-title">Customers</span>
-          </div>
-          <div *ngIf="customers.length === 0" class="empty-state">
-            <mat-icon>people_outline</mat-icon>
-            No customers yet
-          </div>
-          <table *ngIf="customers.length > 0" mat-table [dataSource]="customers">
-            <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef>Name</th>
-              <td mat-cell *matCellDef="let item">{{ item.name }}</td>
-            </ng-container>
-            <ng-container matColumnDef="company">
-              <th mat-header-cell *matHeaderCellDef>Company</th>
-              <td mat-cell *matCellDef="let item">{{ item.company || '—' }}</td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="customerColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: customerColumns"></tr>
-          </table>
+          <div class="section-header"><mat-icon>people</mat-icon><span class="section-title">Customers</span></div>
+          @if (customers.length === 0) {
+            <div class="empty-state"><mat-icon>people_outline</mat-icon> No customers yet</div>
+          } @else {
+            <table mat-table [dataSource]="customers">
+              <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Name</th><td mat-cell *matCellDef="let item">{{ item.name }}</td></ng-container>
+              <ng-container matColumnDef="company"><th mat-header-cell *matHeaderCellDef>Company</th><td mat-cell *matCellDef="let item">{{ item.company || '—' }}</td></ng-container>
+              <tr mat-header-row *matHeaderRowDef="customerColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: customerColumns"></tr>
+            </table>
+          }
         </div>
-
-        <!-- Deals -->
         <div class="section-card">
-          <div class="section-header">
-            <mat-icon>handshake</mat-icon>
-            <span class="section-title">Deals</span>
-          </div>
-          <div *ngIf="deals.length === 0" class="empty-state">
-            <mat-icon>handshake</mat-icon>
-            No deals yet
-          </div>
-          <table *ngIf="deals.length > 0" mat-table [dataSource]="deals">
-            <ng-container matColumnDef="title">
-              <th mat-header-cell *matHeaderCellDef>Title</th>
-              <td mat-cell *matCellDef="let item">{{ item.title }}</td>
-            </ng-container>
-            <ng-container matColumnDef="value">
-              <th mat-header-cell *matHeaderCellDef>Value</th>
-              <td mat-cell *matCellDef="let item">{{ item.value | currency }}</td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="dealColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: dealColumns"></tr>
-          </table>
+          <div class="section-header"><mat-icon>handshake</mat-icon><span class="section-title">Deals</span></div>
+          @if (deals.length === 0) {
+            <div class="empty-state"><mat-icon>handshake</mat-icon> No deals yet</div>
+          } @else {
+            <table mat-table [dataSource]="deals">
+              <ng-container matColumnDef="title"><th mat-header-cell *matHeaderCellDef>Title</th><td mat-cell *matCellDef="let item">{{ item.title }}</td></ng-container>
+              <ng-container matColumnDef="value"><th mat-header-cell *matHeaderCellDef>Value</th><td mat-cell *matCellDef="let item">{{ item.value | currency }}</td></ng-container>
+              <tr mat-header-row *matHeaderRowDef="dealColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: dealColumns"></tr>
+            </table>
+          }
         </div>
-
-        <!-- Recent Activities -->
         <div class="section-card">
-          <div class="section-header">
-            <mat-icon>event_note</mat-icon>
-            <span class="section-title">Recent Activities</span>
-          </div>
-          <div *ngIf="activities.length === 0" class="empty-state">
-            <mat-icon>event_note</mat-icon>
-            No activities yet
-          </div>
-          <table *ngIf="activities.length > 0" mat-table [dataSource]="activities">
-            <ng-container matColumnDef="type">
-              <th mat-header-cell *matHeaderCellDef>Type</th>
-              <td mat-cell *matCellDef="let item">{{ item.type }}</td>
-            </ng-container>
-            <ng-container matColumnDef="createdAt">
-              <th mat-header-cell *matHeaderCellDef>When</th>
-              <td mat-cell *matCellDef="let item">{{ item.createdAt | date: 'MMM d, h:mm a' }}</td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="activityColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: activityColumns"></tr>
-          </table>
+          <div class="section-header"><mat-icon>event_note</mat-icon><span class="section-title">Recent Activities</span></div>
+          @if (activities.length === 0) {
+            <div class="empty-state"><mat-icon>event_note</mat-icon> No activities yet</div>
+          } @else {
+            <table mat-table [dataSource]="activities">
+              <ng-container matColumnDef="type"><th mat-header-cell *matHeaderCellDef>Type</th><td mat-cell *matCellDef="let item">{{ item.type }}</td></ng-container>
+              <ng-container matColumnDef="createdAt"><th mat-header-cell *matHeaderCellDef>When</th><td mat-cell *matCellDef="let item">{{ item.createdAt | date: 'MMM d, h:mm a' }}</td></ng-container>
+              <tr mat-header-row *matHeaderRowDef="activityColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: activityColumns"></tr>
+            </table>
+          }
         </div>
-
       </div>
-    </ng-container>
+    }
   `
 })
 export class DashboardComponent implements OnInit {
@@ -268,6 +210,7 @@ export class DashboardComponent implements OnInit {
   private readonly customersService = inject(CustomersService);
   private readonly dealsService = inject(DealsService);
   private readonly activitiesService = inject(ActivitiesService);
+  private readonly cd = inject(ChangeDetectorRef);
 
   protected loading = true;
   protected summary: DashboardSummary = {
@@ -290,17 +233,17 @@ export class DashboardComponent implements OnInit {
       customers: this.customersService.list(),
       deals: this.dealsService.list(),
       activities: this.activitiesService.list()
-    }).subscribe({
-      next: response => {
-        this.summary = response.summary;
-        this.customers = response.customers;
-        this.deals = response.deals;
-        this.activities = response.activities;
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-      }
-    });
+    })
+      .pipe(finalize(() => { this.loading = false; this.cd.markForCheck(); }))
+      .subscribe({
+        next: response => {
+          this.summary = response.summary;
+          this.customers = response.customers;
+          this.deals = response.deals;
+          this.activities = response.activities;
+          this.cd.markForCheck();
+        },
+        error: () => {}
+      });
   }
 }

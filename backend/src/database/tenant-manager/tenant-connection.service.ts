@@ -32,7 +32,13 @@ export class TenantConnectionService implements OnModuleDestroy {
       adapter: createPgAdapter(tenant.databaseUrl)
     });
 
-    await client.$connect();
+    try {
+      await client.$connect();
+    } catch (err) {
+      await client.$disconnect().catch(() => {});
+      throw err;
+    }
+
     this.tenantClients.set(tenantId, client);
     this.logger.log(`Cached Prisma client for tenant ${tenantId}`);
 

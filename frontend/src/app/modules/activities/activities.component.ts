@@ -1,5 +1,6 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { finalize } from 'rxjs';
 import { ActivitiesService } from '../../core/services/activities.service';
 import { CustomersService } from '../../core/services/customers.service';
 import { Activity, Customer } from '../../shared/models/crm.models';
@@ -22,8 +24,8 @@ const TYPE_CONFIG: Record<string, { bg: string; color: string; icon: string }> =
 @Component({
   selector: 'crm-activities',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     DatePipe,
     MatFormFieldModule,
@@ -126,11 +128,13 @@ const TYPE_CONFIG: Record<string, { bg: string; color: string; icon: string }> =
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Customer</mat-label>
               <mat-select formControlName="customerId">
-                <mat-option *ngFor="let c of customers" [value]="c.id">
-                  {{ c.name }}
-                </mat-option>
+                @for (c of customers; track c.id) {
+                  <mat-option [value]="c.id">{{ c.name }}</mat-option>
+                }
               </mat-select>
-              <mat-error *ngIf="form.get('customerId')?.hasError('min')">Select a customer</mat-error>
+              @if (form.get('customerId')?.hasError('min') && form.get('customerId')?.touched) {
+                <mat-error>Select a customer</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
@@ -145,7 +149,9 @@ const TYPE_CONFIG: Record<string, { bg: string; color: string; icon: string }> =
               [disabled]="form.invalid || saving"
               style="height: 44px; margin-top: 4px"
             >
-              <mat-spinner *ngIf="saving" diameter="18" style="display:inline-block;margin-right:8px;vertical-align:middle" />
+              @if (saving) {
+                <mat-spinner diameter="18" style="display:inline-block;margin-right:8px;vertical-align:middle" />
+              }
               {{ saving ? 'Saving…' : 'Log Activity' }}
             </button>
 
@@ -160,16 +166,14 @@ const TYPE_CONFIG: Record<string, { bg: string; color: string; icon: string }> =
           <span class="panel-title">Activity Log</span>
         </div>
 
-        <div *ngIf="loading" style="display:flex;justify-content:center;padding:48px">
-          <mat-spinner diameter="36" />
-        </div>
-
-        <div *ngIf="!loading && activities.length === 0" class="empty-state">
-          <mat-icon>event_note</mat-icon>
-          <p>No activities yet.<br>Log the first one using the form.</p>
-        </div>
-
-        <ng-container *ngIf="!loading && activities.length > 0">
+        @if (loading) {
+          <div style="display:flex;justify-content:center;padding:48px"><mat-spinner diameter="36" /></div>
+        } @else if (activities.length === 0) {
+          <div class="empty-state">
+            <mat-icon>event_note</mat-icon>
+            <p>No activities yet.<br>Log the first one using the form.</p>
+          </div>
+        } @else {
           <div class="row-count">{{ activities.length }} activit{{ activities.length !== 1 ? 'ies' : 'y' }}</div>
           <table mat-table [dataSource]="activities">
             <ng-container matColumnDef="type">
@@ -202,7 +206,7 @@ const TYPE_CONFIG: Record<string, { bg: string; color: string; icon: string }> =
             <tr mat-header-row *matHeaderRowDef="columns"></tr>
             <tr mat-row *matRowDef="let row; columns: columns"></tr>
           </table>
-        </ng-container>
+        }
       </div>
 
     </div>
@@ -213,6 +217,7 @@ export class ActivitiesComponent implements OnInit {
   private readonly activitiesService = inject(ActivitiesService);
   private readonly customersService = inject(CustomersService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly cd = inject(ChangeDetectorRef);
 
   protected activities: Activity[] = [];
   protected customers: Customer[] = [];
@@ -235,19 +240,21 @@ export class ActivitiesComponent implements OnInit {
     if (this.form.invalid || this.saving) return;
 
     this.saving = true;
-    this.activitiesService.create(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.saving = false;
-        this.form.patchValue({ type: 'CALL', notes: '' });
-        this.snackBar.open('Activity logged successfully', 'Close', { duration: 3000 });
-        this.loadActivities();
-      },
-      error: err => {
-        this.saving = false;
-        const msg = (err?.error?.message as string | undefined) ?? 'Failed to log activity';
-        this.snackBar.open(msg, 'Close', { duration: 5000 });
-      }
-    });
+    this.cd.markForCheck();
+    this.activitiesService
+      .create(this.form.getRawValue())
+      .pipe(finalize(() => { this.saving = false; this.cd.markForCheck(); }))
+      .subscribe({
+        next: () => {
+          this.form.patchValue({ type: 'CALL', notes: '' });
+          this.snackBar.open('Activity logged successfully', 'Close', { duration: 3000 });
+          this.loadActivities();
+        },
+        error: (err: HttpErrorResponse) => {
+          const msg = (err?.error?.message as string | undefined) ?? 'Failed to log activity';
+          this.snackBar.open(msg, 'Close', { duration: 5000 });
+        }
+      });
   }
 
   protected typeConfig(type: string) {
@@ -256,21 +263,32 @@ export class ActivitiesComponent implements OnInit {
 
   private loadActivities(): void {
     this.loading = true;
-    this.activitiesService.list().subscribe({
-      next: acts => { this.activities = acts; this.loading = false; },
-      error: () => { this.loading = false; }
-    });
+    this.cd.markForCheck();
+    this.activitiesService
+      .list()
+      .pipe(finalize(() => { this.loading = false; this.cd.markForCheck(); }))
+      .subscribe({
+        next: acts => {
+          this.activities = acts;
+          this.cd.markForCheck();
+        },
+        error: (err: HttpErrorResponse) => {
+          const msg = (err?.error?.message as string | undefined) ?? 'Failed to load activities';
+          this.snackBar.open(msg, 'Close', { duration: 5000 });
+        }
+      });
   }
 
   private loadCustomers(): void {
     this.customersService.list().subscribe({
       next: customers => {
-        this.customers = customers;
-        const [first] = customers;
-        if (first && !this.form.value.customerId) {
-          this.form.patchValue({ customerId: first.id });
-        }
-      },
+          this.customers = customers;
+          const [first] = customers;
+          if (first && !this.form.value.customerId) {
+            this.form.patchValue({ customerId: first.id });
+          }
+          this.cd.markForCheck();
+        },
       error: () => {}
     });
   }
