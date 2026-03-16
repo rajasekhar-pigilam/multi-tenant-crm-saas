@@ -8,6 +8,7 @@ export interface WorkspaceUser {
 export interface WorkspaceTenant {
   id: number;
   name: string;
+  slug?: string;
   role?: string;
 }
 
@@ -22,4 +23,26 @@ export interface SelectTenantResponse {
   expiresIn: string;
   tenant: WorkspaceTenant;
   user: WorkspaceUser;
+}
+
+export interface RegisterTenantRequest {
+  tenantName: string;
+  slug: string;
+  adminEmail: string;
+  adminPassword: string;
+}
+
+export interface RegisterTenantResponse {
+  tenant: {
+    id: number;
+    name: string;
+    slug: string;
+    status: string;
+    createdAt: string;
+  };
+  admin: {
+    id: number;
+    email: string;
+  };
+  message: string;
 }

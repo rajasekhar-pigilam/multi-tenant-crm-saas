@@ -16,7 +16,7 @@ import { RouterOutlet } from '@angular/router';
         background: linear-gradient(135deg, #1d4ed8, #0f172a);
       "
     >
-      <mat-card style="width: min(100%, 480px)">
+      <mat-card style="width: min(100%, 520px); position: relative; overflow: hidden">
         <router-outlet />
       </mat-card>
     </div>

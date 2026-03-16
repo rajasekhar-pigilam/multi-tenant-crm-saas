@@ -4,6 +4,7 @@ import { DashboardLayoutComponent } from './layouts/dashboard-layout/dashboard-l
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { ActivitiesComponent } from './modules/activities/activities.component';
 import { LoginComponent } from './modules/auth/login.component';
+import { RegisterComponent } from './modules/auth/register.component';
 import { CustomersComponent } from './modules/customers/customers.component';
 import { DashboardComponent } from './modules/dashboard/dashboard.component';
 import { DealsComponent } from './modules/deals/deals.component';
@@ -17,6 +18,10 @@ export const appRoutes: Routes = [
       {
         path: 'login',
         component: LoginComponent
+      },
+      {
+        path: 'register',
+        component: RegisterComponent
       }
     ]
   },

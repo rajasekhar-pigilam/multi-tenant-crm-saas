@@ -4,6 +4,8 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   LoginResponse,
+  RegisterTenantRequest,
+  RegisterTenantResponse,
   SelectTenantResponse,
   WorkspaceTenant,
   WorkspaceUser
@@ -65,6 +67,15 @@ export class AuthService {
           this.updateSession(nextState);
         })
       );
+  }
+
+  registerTenant(
+    payload: RegisterTenantRequest
+  ): Observable<RegisterTenantResponse> {
+    return this.http.post<RegisterTenantResponse>(
+      `${environment.apiBaseUrl}/tenants/register`,
+      payload
+    );
   }
 
   logout(): void {
