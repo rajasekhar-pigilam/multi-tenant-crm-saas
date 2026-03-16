@@ -45,8 +45,17 @@ export class TenantsService {
     const existingTenant = await this.masterPrisma.tenant.findUnique({
       where: { slug: dto.slug }
     });
+
     if (existingTenant) {
-      throw new ConflictException(`Tenant slug "${dto.slug}" is already taken`);
+      if (existingTenant.status === TenantStatus.FAILED) {
+        // Clean up the failed attempt so the user can retry with the same slug
+        await this.neonProvisioning
+          .deleteTenantDatabase(dto.slug)
+          .catch(() => {});
+        await this.masterPrisma.tenant.delete({ where: { slug: dto.slug } });
+      } else {
+        throw new ConflictException(`Tenant slug "${dto.slug}" is already taken`);
+      }
     }
 
     // Step 1 – create tenant in PROVISIONING state
