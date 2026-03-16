@@ -2,9 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { CustomersService } from '../../core/services/customers.service';
 import { Customer } from '../../shared/models/crm.models';
@@ -15,44 +17,144 @@ import { Customer } from '../../shared/models/crm.models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatTableModule
+    MatTableModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule
   ],
+  styles: [`
+    .page-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .page-layout { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .panel-header mat-icon { color: #64748b; }
+    .panel-body { padding: 16px 20px 20px; }
+    .form-grid { display: grid; gap: 4px; }
+    .full-width { width: 100%; }
+    table.mat-mdc-table { width: 100%; }
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: #94a3b8;
+    }
+    .empty-state mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 8px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .empty-state p { margin: 0; font-size: 13px; }
+    .row-count {
+      font-size: 12px;
+      color: #94a3b8;
+      padding: 0 20px 12px;
+    }
+  `],
   template: `
-    <div class="grid grid-3">
-      <mat-card>
-        <mat-card-title>Create Customer</mat-card-title>
-        <mat-card-content>
-          <form [formGroup]="form" (ngSubmit)="submit()" class="grid">
+    <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 700; color: #0f172a">
+      Customers
+    </h2>
+
+    <div class="page-layout">
+
+      <!-- ── Create Form ─────────────────────────────────────────── -->
+      <div class="panel">
+        <div class="panel-header">
+          <mat-icon>person_add</mat-icon>
+          <span class="panel-title">New Customer</span>
+        </div>
+        <div class="panel-body">
+          <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Name</mat-label>
-              <input matInput formControlName="name" />
+              <mat-label>Full name</mat-label>
+              <mat-icon matPrefix style="color:#94a3b8;margin-right:4px">badge</mat-icon>
+              <input matInput formControlName="name" autocomplete="off" />
+              <mat-error *ngIf="form.get('name')?.hasError('required')">Name is required</mat-error>
             </mat-form-field>
+
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
-              <input matInput formControlName="email" />
+              <mat-icon matPrefix style="color:#94a3b8;margin-right:4px">email</mat-icon>
+              <input matInput type="email" formControlName="email" autocomplete="off" />
+              <mat-error *ngIf="form.get('email')?.hasError('required')">Email is required</mat-error>
+              <mat-error *ngIf="form.get('email')?.hasError('email')">Invalid email</mat-error>
             </mat-form-field>
+
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Phone</mat-label>
+              <mat-icon matPrefix style="color:#94a3b8;margin-right:4px">phone</mat-icon>
               <input matInput formControlName="phone" />
             </mat-form-field>
+
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Company</mat-label>
+              <mat-icon matPrefix style="color:#94a3b8;margin-right:4px">business</mat-icon>
               <input matInput formControlName="company" />
             </mat-form-field>
-            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-              Save Customer
-            </button>
-          </form>
-        </mat-card-content>
-      </mat-card>
 
-      <mat-card style="grid-column: span 2">
-        <mat-card-title>Customers</mat-card-title>
-        <mat-card-content>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="form.invalid || saving"
+              style="height: 44px; margin-top: 4px"
+            >
+              <mat-spinner *ngIf="saving" diameter="18" style="display:inline-block;margin-right:8px;vertical-align:middle" />
+              {{ saving ? 'Saving…' : 'Save Customer' }}
+            </button>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- ── Customers Table ─────────────────────────────────────── -->
+      <div class="panel">
+        <div class="panel-header">
+          <mat-icon>people</mat-icon>
+          <span class="panel-title">All Customers</span>
+        </div>
+
+        <div *ngIf="loading" style="display:flex;justify-content:center;padding:48px">
+          <mat-spinner diameter="36" />
+        </div>
+
+        <div *ngIf="!loading && customers.length === 0" class="empty-state">
+          <mat-icon>people_outline</mat-icon>
+          <p>No customers yet.<br>Use the form to add the first one.</p>
+        </div>
+
+        <ng-container *ngIf="!loading && customers.length > 0">
+          <div class="row-count">{{ customers.length }} customer{{ customers.length !== 1 ? 's' : '' }}</div>
           <table mat-table [dataSource]="customers">
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -62,24 +164,33 @@ import { Customer } from '../../shared/models/crm.models';
               <th mat-header-cell *matHeaderCellDef>Email</th>
               <td mat-cell *matCellDef="let item">{{ item.email }}</td>
             </ng-container>
+            <ng-container matColumnDef="phone">
+              <th mat-header-cell *matHeaderCellDef>Phone</th>
+              <td mat-cell *matCellDef="let item">{{ item.phone || '—' }}</td>
+            </ng-container>
             <ng-container matColumnDef="company">
               <th mat-header-cell *matHeaderCellDef>Company</th>
-              <td mat-cell *matCellDef="let item">{{ item.company || '-' }}</td>
+              <td mat-cell *matCellDef="let item">{{ item.company || '—' }}</td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="columns"></tr>
             <tr mat-row *matRowDef="let row; columns: columns"></tr>
           </table>
-        </mat-card-content>
-      </mat-card>
+        </ng-container>
+      </div>
+
     </div>
   `
 })
 export class CustomersComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly customersService = inject(CustomersService);
+  private readonly snackBar = inject(MatSnackBar);
 
   protected customers: Customer[] = [];
-  protected readonly columns = ['name', 'email', 'company'];
+  protected loading = true;
+  protected saving = false;
+  protected readonly columns = ['name', 'email', 'phone', 'company'];
+
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
@@ -92,24 +203,29 @@ export class CustomersComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid) {
-      return;
-    }
+    if (this.form.invalid || this.saving) return;
 
-    this.customersService.create(this.form.getRawValue()).subscribe(() => {
-      this.form.reset({
-        name: '',
-        email: '',
-        phone: '',
-        company: ''
-      });
-      this.loadCustomers();
+    this.saving = true;
+    this.customersService.create(this.form.getRawValue()).subscribe({
+      next: () => {
+        this.saving = false;
+        this.form.reset({ name: '', email: '', phone: '', company: '' });
+        this.snackBar.open('Customer saved successfully', 'Close', { duration: 3000 });
+        this.loadCustomers();
+      },
+      error: err => {
+        this.saving = false;
+        const msg = (err?.error?.message as string | undefined) ?? 'Failed to save customer';
+        this.snackBar.open(msg, 'Close', { duration: 5000 });
+      }
     });
   }
 
   private loadCustomers(): void {
-    this.customersService.list().subscribe(customers => {
-      this.customers = customers;
+    this.loading = true;
+    this.customersService.list().subscribe({
+      next: customers => { this.customers = customers; this.loading = false; },
+      error: () => { this.loading = false; }
     });
   }
 }
