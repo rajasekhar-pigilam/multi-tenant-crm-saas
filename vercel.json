@@ -1,13 +1,21 @@
 {
+  "version": 2,
   "buildCommand": "npm run build:vercel",
-  "outputDirectory": "frontend/dist/frontend/browser",
   "installCommand": "npm install",
-  "functions": {
-    "api/[...path].js": {
-      "maxDuration": 60
+  "builds": [
+    {
+      "src": "api/[...path].js",
+      "use": "@vercel/node",
+      "config": { "maxDuration": 60 }
+    },
+    {
+      "src": "frontend/dist/frontend/browser/**",
+      "use": "@vercel/static"
     }
-  },
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/[...path].js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
