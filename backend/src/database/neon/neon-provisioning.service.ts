@@ -5,8 +5,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-interface NeonProject {
-  default_branch_id: string;
+interface NeonBranch {
+  id: string;
+  name: string;
+  default: boolean;
 }
 
 interface NeonDatabase {
@@ -97,12 +99,25 @@ export class NeonProvisioningService {
     }
   }
 
+  /**
+   * Lists branches for the project and returns the ID of the default one.
+   * The project endpoint does not expose default_branch_id directly.
+   * Reference: https://api.neon.tech/v2 — GET /projects/{project_id}/branches
+   */
   private async getDefaultBranchId(): Promise<string> {
-    const data = await this.callNeonApi<{ project: NeonProject }>(
+    const data = await this.callNeonApi<{ branches: NeonBranch[] }>(
       'GET',
-      `/projects/${this.projectId}`
+      `/projects/${this.projectId}/branches`
     );
-    return data.project.default_branch_id;
+
+    const defaultBranch = data.branches.find(b => b.default);
+    if (!defaultBranch) {
+      throw new InternalServerErrorException(
+        `No default branch found in Neon project ${this.projectId}`
+      );
+    }
+
+    return defaultBranch.id;
   }
 
   /**

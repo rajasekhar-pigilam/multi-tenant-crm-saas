@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Pool } from 'pg';
 
 /**
@@ -7,15 +7,57 @@ import { Pool } from 'pg';
  *
  * Using raw DDL avoids a subprocess dependency on the Prisma CLI and
  * allows atomic schema initialisation inside the provisioning transaction.
+ *
+ * Neon databases take a few seconds to become available after creation
+ * via the API, so we retry the connection with exponential backoff.
+ * We also swap the pooler endpoint for the direct endpoint so that
+ * DDL can run without PgBouncer transaction-mode restrictions.
  */
 @Injectable()
 export class TenantSchemaInitializerService {
   private readonly logger = new Logger(TenantSchemaInitializerService.name);
 
   async applySchema(connectionString: string): Promise<void> {
+    // Use the direct (unpooled) endpoint for DDL — strip "-pooler" from host
+    const directConnString = connectionString.replace('-pooler.', '.');
+
+    const maxAttempts = 6;
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await this.applySchemaOnce(directConnString);
+        return;
+      } catch (err: unknown) {
+        lastError = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        const isNotReady =
+          msg.includes('does not exist') ||
+          msg.includes('ECONNREFUSED') ||
+          msg.includes('ETIMEDOUT') ||
+          msg.includes('connection refused');
+
+        if (isNotReady && attempt < maxAttempts) {
+          const delayMs = attempt * 3_000;
+          this.logger.warn(
+            `Database not ready (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs / 1000}s…`
+          );
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+        break;
+      }
+    }
+
+    throw new InternalServerErrorException(
+      `Schema init failed after ${maxAttempts} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+    );
+  }
+
+  private async applySchemaOnce(connectionString: string): Promise<void> {
     const pool = new Pool({
       connectionString,
-      connectionTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 15_000,
       ssl: { rejectUnauthorized: false }
     });
 
@@ -89,7 +131,7 @@ export class TenantSchemaInitializerService {
         await client.query('COMMIT');
         this.logger.log('Tenant schema applied successfully');
       } catch (err) {
-        await client.query('ROLLBACK');
+        await client.query('ROLLBACK').catch(() => {});
         throw err;
       } finally {
         client.release();
