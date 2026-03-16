@@ -1,68 +1,422 @@
 # Multi-Tenant CRM SaaS PoC
 
-## Plan
+Production-grade proof of concept for a database-per-tenant CRM SaaS built with NestJS, Angular, Prisma, Atlas, JWT, and PostgreSQL/Neon.
 
-### Documentation References
+## Documentation References
 
 - Angular routing and guards: [angular.dev/guide/routing](https://angular.dev/guide/routing) and [angular.dev/guide/routing/route-guards](https://angular.dev/guide/routing/route-guards)
 - Angular Material setup: [material.angular.dev/guide/getting-started](https://material.angular.dev/guide/getting-started)
 - NestJS authentication: [docs.nestjs.com/security/authentication](https://docs.nestjs.com/security/authentication)
 - NestJS Swagger: [docs.nestjs.com/recipes/swagger](https://docs.nestjs.com/recipes/swagger)
 - Prisma schema overview: [prisma.io/docs/orm/prisma-schema/overview](https://www.prisma.io/docs/orm/prisma-schema/overview)
+- Prisma ORM 7 upgrade guide: [prisma.io/docs/guides/upgrade-prisma-orm/v7](https://www.prisma.io/docs/guides/upgrade-prisma-orm/v7)
 - Atlas with Prisma: [atlasgo.io/guides/orms/prisma](https://atlasgo.io/guides/orms/prisma)
 - Neon connection setup: [neon.com/docs/connect/connect-from-any-app](https://neon.com/docs/connect/connect-from-any-app)
 
-### Architecture Overview
+## Technology Stack
 
-- Repository will be a simple monorepo with `backend/` for NestJS, `frontend/` for Angular, and root-level infra/config docs for Prisma, Atlas, and Neon setup.
-- Multi-tenancy will use a master database for identity and membership resolution plus one database per tenant for CRM business data.
-- Auth flow will be 2-step: `POST /auth/login` validates against master DB and returns memberships; `POST /auth/select-tenant` issues a JWT containing `sub`, `tenantId`, and `role`.
-- Tenant-aware CRM requests will resolve the tenant DB dynamically through a cached `TenantConnectionService` that loads the target `database_url` from the master DB.
+- Frontend: Angular 21, Angular Material, RxJS, TypeScript
+- Backend: NestJS 11, REST APIs, Swagger, JWT
+- Database: PostgreSQL, Neon
+- ORM: Prisma 7 with `@prisma/adapter-pg`
+- Migrations: Atlas
+- Multi-tenancy model: database-per-tenant isolation
+
+## Architecture Overview
+
+- Master database: `crm_master_db`
+- Tenant databases: `crm_tenant_abc_db`, `crm_tenant_xyz_db`, `crm_tenant_demo_db`
+- Master database stores users, tenants, and tenant memberships
+- Tenant databases store CRM business data only
+- Login is performed against the master database, then a tenant-scoped JWT is issued after workspace selection
 
 ```mermaid
 flowchart TD
-  AngularClient[AngularClient] --> JwtToken[JwtToken]
-  JwtToken --> NestApi[NestApi]
-  NestApi --> JwtGuard[JwtGuard]
+  AngularClient[AngularClient] --> LoginApi[POST_auth_login]
+  LoginApi --> MasterDb[crm_master_db]
+  MasterDb --> WorkspaceSelection[WorkspaceSelection]
+  WorkspaceSelection --> SelectTenantApi[POST_auth_select_tenant]
+  SelectTenantApi --> JwtToken[JWT_access_token]
+  JwtToken --> NestApi[NestJS_API]
+  NestApi --> JwtGuard[JWT_Guard]
   JwtGuard --> TenantConnectionService[TenantConnectionService]
-  TenantConnectionService --> MasterDb[MasterDb]
-  TenantConnectionService --> TenantDb[TenantDb]
+  TenantConnectionService --> MasterLookup[Master_Tenant_Lookup]
+  TenantConnectionService --> TenantDb[tenant_database]
 ```
 
-### Repository Layout To Generate
+## Folder Structure
 
-- Root files: `package.json`, `README.md`, `.env.example`, `docker-compose.yml`, `atlas.hcl`, `tsconfig.base.json`
-- Backend app: `backend/src/main.ts`, `backend/src/app.module.ts`, `backend/src/config/database.config.ts`
-- Backend database layer: `backend/src/database/prisma/master-prisma.service.ts`, `backend/src/database/tenant-manager/tenant-connection.service.ts`
-- Backend auth and guards: `backend/src/modules/auth`, `backend/src/common/guards/jwt-auth.guard.ts`, `backend/src/common/guards/roles.guard.ts`, `backend/src/common/decorators/current-user.decorator.ts`
-- Backend CRM modules: `backend/src/modules/customers`, `backend/src/modules/deals`, `backend/src/modules/activities`, `backend/src/modules/tenants`
-- Prisma schemas: `backend/prisma/master/schema.prisma`, `backend/prisma/tenant/schema.prisma`
-- Atlas migration folders: `backend/atlas/master`, `backend/atlas/tenant`
-- Angular app shell: `frontend/src/main.ts`, `frontend/src/app/app.routes.ts`, `frontend/src/app/app.config.ts`
-- Angular core: `frontend/src/app/core/services`, `frontend/src/app/core/interceptors/auth.interceptor.ts`, `frontend/src/app/core/guards/auth.guard.ts`
-- Angular feature modules: `frontend/src/app/modules/auth`, `frontend/src/app/modules/workspace`, `frontend/src/app/modules/dashboard`, `frontend/src/app/modules/customers`, `frontend/src/app/modules/deals`, `frontend/src/app/modules/activities`
-- Angular shared/layouts: `frontend/src/app/shared/models`, `frontend/src/app/layouts/auth-layout`, `frontend/src/app/layouts/dashboard-layout`
+```text
+.
+├── atlas.hcl
+├── docker-compose.yml
+├── package.json
+├── tsconfig.base.json
+├── backend
+│   ├── atlas
+│   │   ├── master
+│   │   └── tenant
+│   ├── nest-cli.json
+│   ├── package.json
+│   ├── prisma
+│   │   ├── master
+│   │   │   ├── prisma.config.ts
+│   │   │   └── schema.prisma
+│   │   ├── tenant
+│   │   │   ├── prisma.config.ts
+│   │   │   └── schema.prisma
+│   │   └── seeds
+│   │       ├── init-local-databases.sql
+│   │       └── seed.ts
+│   └── src
+│       ├── app.module.ts
+│       ├── main.ts
+│       ├── common
+│       ├── config
+│       ├── database
+│       ├── generated
+│       └── modules
+│           ├── activities
+│           ├── auth
+│           ├── customers
+│           ├── deals
+│           └── tenants
+└── frontend
+    ├── angular.json
+    ├── package.json
+    └── src
+        ├── app
+        │   ├── app.component.ts
+        │   ├── app.config.ts
+        │   ├── app.routes.ts
+        │   ├── core
+        │   ├── layouts
+        │   ├── modules
+        │   └── shared
+        ├── environments
+        ├── index.html
+        ├── main.ts
+        └── styles.css
+```
 
-### Implementation Approach
+## Backend Modules
 
-1. Scaffold a monorepo with separate `backend` and `frontend` apps plus shared root scripts for install, dev, build, lint, Prisma generation, and Atlas migration commands.
-2. Build master and tenant Prisma schemas with generated clients in separate output folders, reflecting the exact entities you specified for `Users`, `Tenants`, `TenantMembers`, `Customers`, `Deals`, and `Activities`.
-3. Implement NestJS auth, master DB lookup, workspace selection, JWT issuance, tenant resolution, role guard, Swagger decorators, DTO validation, and CRUD REST modules for CRM resources.
-4. Implement Angular login, workspace selection, JWT storage/interceptor, protected dashboard shell, Material-based widgets/tables/forms, and tenant-aware API services for customers, deals, and activities.
-5. Add Atlas config and migration docs/scripts for both master and tenant schemas, plus Neon environment guidance and sample provisioning workflow for `crm_master_db` and tenant DBs.
-6. Add bootstrap seed support and a concise README covering local setup, environment variables, migration commands, API examples, and deployment notes.
+- `auth`: login, workspace selection, JWT issuance
+- `tenants`: dashboard summary endpoint
+- `customers`: CRUD
+- `deals`: create and list
+- `activities`: create and list
+- `database`: master Prisma client plus cached tenant Prisma clients
+- `common`: guards, decorators, authenticated-user contract
 
-### Key Technical Decisions
+## Frontend Modules
 
-- Use NestJS REST controllers and DTO validation with `class-validator` and `class-transformer` for predictable API contracts.
-- Use a singleton master Prisma client and a cached map of tenant Prisma clients keyed by `tenantId` to avoid reconnect churn.
-- Keep tenant identity in JWT claims and enforce tenant scoping only through the resolved tenant Prisma client, preventing cross-tenant queries by design.
-- Use Angular standalone components with feature-organized routes and services, while still reflecting the module boundaries requested in the folder structure.
-- Treat Neon database creation as environment-driven and documented; the PoC will consume connection strings and template naming conventions rather than relying on proprietary provisioning automation.
+- `auth`: login form
+- `workspace`: workspace selection screen
+- `dashboard`: summary cards and activity tables
+- `customers`: customer form and table
+- `deals`: deal form and table
+- `activities`: activity form and table
+- `layouts`: auth shell and dashboard shell
+- `core`: auth service, API services, interceptor, guard
 
-### Deliverables After Execution
+## Database Schemas
 
-- A runnable backend with Swagger, JWT auth, tenant selection, and CRM CRUD endpoints.
-- A runnable Angular frontend with login, workspace selector, dashboard, tables, and forms using Angular Material.
-- Two Prisma schemas, generated clients, Atlas migration config, sample migration commands, seed/demo data, API examples, and deployment/setup notes.
-- Copy-paste-ready repository files with paths for all major source files and configuration files.
+### Master Database
+
+- `User`
+  - `id`
+  - `email`
+  - `passwordHash`
+  - `status`
+  - `createdAt`
+- `Tenant`
+  - `id`
+  - `name`
+  - `databaseUrl`
+  - `status`
+  - `createdAt`
+- `TenantMember`
+  - `id`
+  - `userId`
+  - `tenantId`
+  - `role`
+
+### Tenant Database
+
+- `User`
+  - `id`
+  - `email`
+  - `role`
+  - `createdAt`
+- `Customer`
+  - `id`
+  - `name`
+  - `email`
+  - `phone`
+  - `company`
+  - `createdAt`
+- `Deal`
+  - `id`
+  - `title`
+  - `value`
+  - `stage`
+  - `customerId`
+  - `createdAt`
+- `Activity`
+  - `id`
+  - `type`
+  - `notes`
+  - `customerId`
+  - `createdAt`
+
+## Authentication and Tenant Resolution
+
+### Login Flow
+
+1. User submits `email` and `password`
+2. Backend validates the user against `crm_master_db`
+3. Backend returns memberships and a short-lived `selectionToken`
+4. Frontend renders workspace selection
+5. Frontend calls `POST /auth/select-tenant`
+6. Backend validates tenant membership and returns a tenant-scoped JWT
+
+### Why `selectionToken` Exists
+
+The original request only specified `tenantId` for workspace selection. This implementation adds a short-lived pre-selection JWT so `POST /auth/select-tenant` can stay simple and still be secure without sending `userId` back from the browser.
+
+### JWT Payload
+
+```json
+{
+  "sub": 1,
+  "email": "raj@gmail.com",
+  "tenantId": 1,
+  "role": "ADMIN",
+  "tokenType": "access"
+}
+```
+
+## API Examples
+
+### Login
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "raj@gmail.com",
+    "password": "123456"
+  }'
+```
+
+Example response:
+
+```json
+{
+  "user": {
+    "id": 1,
+    "email": "raj@gmail.com",
+    "status": "ACTIVE"
+  },
+  "tenants": [
+    { "id": 1, "name": "ABC Corp", "role": "ADMIN" },
+    { "id": 2, "name": "XYZ Ltd", "role": "MANAGER" }
+  ],
+  "selectionToken": "jwt-token"
+}
+```
+
+### Select Tenant
+
+```bash
+curl -X POST http://localhost:3000/api/auth/select-tenant \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <selection-token>" \
+  -d '{
+    "tenantId": 1
+  }'
+```
+
+### Create Customer
+
+```bash
+curl -X POST http://localhost:3000/api/customers \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <access-token>" \
+  -d '{
+    "name": "Acme Industries",
+    "email": "buyer@acme.com",
+    "phone": "+1-202-555-0111",
+    "company": "Acme Corp"
+  }'
+```
+
+### Swagger
+
+- Swagger UI: `http://localhost:3000/api/docs`
+
+## Local Development
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Create Local Environment File
+
+```bash
+cp .env.example .env
+```
+
+### 3. Start PostgreSQL
+
+```bash
+docker compose up -d postgres
+```
+
+Note: Docker was available during implementation, but the Docker daemon was not running, so the container startup could not be completed in-session.
+
+### 4. Generate Prisma Clients
+
+```bash
+npm run prisma:generate
+```
+
+### 5. Apply Schemas for Quick Local Bootstrap
+
+For local smoke testing, use Prisma `db push` to create tables:
+
+```bash
+cd backend
+npx prisma db push --config prisma/master/prisma.config.ts
+TENANT_DEMO_DB_URL="postgresql://postgres:postgres@localhost:5432/crm_tenant_abc_db?schema=public" npx prisma db push --config prisma/tenant/prisma.config.ts
+TENANT_DEMO_DB_URL="postgresql://postgres:postgres@localhost:5432/crm_tenant_xyz_db?schema=public" npx prisma db push --config prisma/tenant/prisma.config.ts
+TENANT_DEMO_DB_URL="postgresql://postgres:postgres@localhost:5432/crm_tenant_demo_db?schema=public" npx prisma db push --config prisma/tenant/prisma.config.ts
+```
+
+### 6. Seed Demo Data
+
+```bash
+npm run prisma:seed --workspace backend
+```
+
+Seeded demo users:
+
+- `raj@gmail.com / 123456`
+- `john@yahoo.com / 123456`
+
+### 7. Start Applications
+
+```bash
+npm run dev:backend
+npm run dev:frontend
+```
+
+Frontend default URL: `http://localhost:4200`
+
+Backend default URL: `http://localhost:3000/api`
+
+## Atlas Migration Setup
+
+Atlas is configured through the root `atlas.hcl` plus separate Prisma configs and migration directories:
+
+- Master migration directory: `backend/atlas/master`
+- Tenant migration directory: `backend/atlas/tenant`
+
+### Master DB Migration Flow
+
+```bash
+atlas migrate diff master_init --env master
+atlas migrate apply --env master
+```
+
+### Tenant DB Migration Flow
+
+Apply the same tenant schema to each tenant database URL:
+
+```bash
+TENANT_DEMO_DB_URL="postgresql://.../crm_tenant_abc_db?schema=public" atlas migrate diff tenant_init --env tenant
+TENANT_DEMO_DB_URL="postgresql://.../crm_tenant_abc_db?schema=public" atlas migrate apply --env tenant
+
+TENANT_DEMO_DB_URL="postgresql://.../crm_tenant_xyz_db?schema=public" atlas migrate apply --env tenant
+TENANT_DEMO_DB_URL="postgresql://.../crm_tenant_demo_db?schema=public" atlas migrate apply --env tenant
+```
+
+### Recommended Production Workflow
+
+1. Apply Atlas migrations to `crm_master_db`
+2. Provision the new tenant database in Neon
+3. Apply the tenant Atlas migration set to that tenant database
+4. Insert the new tenant row into the master database with the tenant DB URL
+
+## Neon Setup
+
+### Create the Neon Project
+
+1. Create one Neon project for the CRM SaaS platform
+2. Create or branch databases for:
+   - `crm_master_db`
+   - `crm_tenant_abc_db`
+   - `crm_tenant_xyz_db`
+   - `crm_tenant_demo_db`
+3. Copy pooled or direct PostgreSQL connection strings from the Neon console
+
+### Environment Variables
+
+```env
+MASTER_DB_URL=postgresql://.../crm_master_db?sslmode=require
+TENANT_ABC_DB_URL=postgresql://.../crm_tenant_abc_db?sslmode=require
+TENANT_XYZ_DB_URL=postgresql://.../crm_tenant_xyz_db?sslmode=require
+TENANT_DEMO_DB_URL=postgresql://.../crm_tenant_demo_db?sslmode=require
+NEON_API_KEY=your-neon-api-key
+TENANT_DB_TEMPLATE=crm_tenant_{slug}_db
+JWT_SECRET=strong-random-secret
+```
+
+## Security Considerations
+
+- Passwords are hashed with `bcrypt`
+- JWT guards protect tenant APIs
+- Role-based authorization is enforced with `RolesGuard`
+- Tenant isolation is enforced by creating the Prisma client against the selected tenant database only
+- Master DB and tenant DB models are physically separated
+
+## Performance Considerations
+
+- Master Prisma client is created once and reused
+- Tenant Prisma clients are cached in `TenantConnectionService`
+- Prisma 7 uses `@prisma/adapter-pg`, so pooling behavior follows `pg`
+- Database-per-tenant isolation supports horizontal scaling and noisy-neighbor containment
+
+## Build and Verification
+
+The repository currently passes:
+
+```bash
+npm run prisma:generate
+npm run build --workspace backend
+npm run build --workspace frontend
+npm run lint
+```
+
+## Deployment Notes
+
+### Backend
+
+- Deploy NestJS as a long-running Node service
+- Set `MASTER_DB_URL`, `JWT_SECRET`, and the Neon tenant URLs
+- Run Atlas migrations before promoting the release
+
+### Frontend
+
+- Build Angular with `npm run build --workspace frontend`
+- Serve the static bundle from Nginx, Vercel, Netlify, or a CDN-backed object store
+- Point the frontend API base URL at the deployed NestJS API
+
+### Database Operations
+
+- Treat master DB migrations separately from tenant DB migrations
+- Apply tenant migrations to every existing tenant database during rollout
+- Ensure tenant DB creation automation always follows migration application before activation

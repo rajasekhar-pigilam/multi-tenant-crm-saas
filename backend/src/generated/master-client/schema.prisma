@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated/master-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum MembershipRole {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  passwordHash  String         @map("password_hash")
+  status        UserStatus     @default(ACTIVE)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  tenantMembers TenantMember[]
+
+  @@map("users")
+}
+
+model Tenant {
+  id            Int            @id @default(autoincrement())
+  name          String
+  databaseUrl   String         @unique @map("database_url")
+  status        TenantStatus   @default(ACTIVE)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  tenantMembers TenantMember[]
+
+  @@map("tenants")
+}
+
+model TenantMember {
+  id       Int            @id @default(autoincrement())
+  userId   Int            @map("user_id")
+  tenantId Int            @map("tenant_id")
+  role     MembershipRole @default(MEMBER)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@map("tenant_members")
+}
