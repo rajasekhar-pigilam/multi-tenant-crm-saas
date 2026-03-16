@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseGuards
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -11,6 +21,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
 import { CreateDealDto } from './dto/create-deal.dto';
+import { UpdateDealDto } from './dto/update-deal.dto';
 import { DealsService } from './deals.service';
 
 @ApiTags('deals')
@@ -35,5 +46,35 @@ export class DealsController {
   @ApiOperation({ summary: 'List deals for the current tenant' })
   findAll(@CurrentUser() currentUser: AuthenticatedUser) {
     return this.dealsService.findAll(currentUser);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a single deal by id' })
+  findOne(
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.dealsService.findOne(currentUser, id);
+  }
+
+  @Put(':id')
+  @Roles('ADMIN', 'MANAGER')
+  @ApiOperation({ summary: 'Update a deal (stage, value, title)' })
+  update(
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateDealDto
+  ) {
+    return this.dealsService.update(currentUser, id, dto);
+  }
+
+  @Delete(':id')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Delete a deal (ADMIN only)' })
+  remove(
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.dealsService.remove(currentUser, id);
   }
 }

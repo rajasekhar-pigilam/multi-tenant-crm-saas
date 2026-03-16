@@ -24,6 +24,10 @@ export class TenantConnectionService implements OnModuleDestroy {
       throw new Error(`Tenant ${tenantId} was not found in the master database`);
     }
 
+    if (!tenant.databaseUrl) {
+      throw new Error(`Tenant ${tenantId} has no database URL (still provisioning?)`);
+    }
+
     const client = new TenantPrismaClient({
       adapter: createPgAdapter(tenant.databaseUrl)
     });

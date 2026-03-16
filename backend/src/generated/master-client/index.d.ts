@@ -28,6 +28,11 @@ export type Tenant = $Result.DefaultSelection<Prisma.$TenantPayload>
  * 
  */
 export type TenantMember = $Result.DefaultSelection<Prisma.$TenantMemberPayload>
+/**
+ * Model ProvisioningLog
+ * 
+ */
+export type ProvisioningLog = $Result.DefaultSelection<Prisma.$ProvisioningLogPayload>
 
 /**
  * Enums
@@ -43,7 +48,9 @@ export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
 
 
 export const TenantStatus: {
+  PROVISIONING: 'PROVISIONING',
   ACTIVE: 'ACTIVE',
+  FAILED: 'FAILED',
   SUSPENDED: 'SUSPENDED',
   ARCHIVED: 'ARCHIVED'
 };
@@ -223,6 +230,16 @@ export class PrismaClient<
     * ```
     */
   get tenantMember(): Prisma.TenantMemberDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.provisioningLog`: Exposes CRUD operations for the **ProvisioningLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProvisioningLogs
+    * const provisioningLogs = await prisma.provisioningLog.findMany()
+    * ```
+    */
+  get provisioningLog(): Prisma.ProvisioningLogDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -659,7 +676,8 @@ export namespace Prisma {
   export const ModelName: {
     User: 'User',
     Tenant: 'Tenant',
-    TenantMember: 'TenantMember'
+    TenantMember: 'TenantMember',
+    ProvisioningLog: 'ProvisioningLog'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -675,7 +693,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "tenant" | "tenantMember"
+      modelProps: "user" | "tenant" | "tenantMember" | "provisioningLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -901,6 +919,80 @@ export namespace Prisma {
           }
         }
       }
+      ProvisioningLog: {
+        payload: Prisma.$ProvisioningLogPayload<ExtArgs>
+        fields: Prisma.ProvisioningLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProvisioningLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProvisioningLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>
+          }
+          findFirst: {
+            args: Prisma.ProvisioningLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProvisioningLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>
+          }
+          findMany: {
+            args: Prisma.ProvisioningLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>[]
+          }
+          create: {
+            args: Prisma.ProvisioningLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>
+          }
+          createMany: {
+            args: Prisma.ProvisioningLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProvisioningLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>[]
+          }
+          delete: {
+            args: Prisma.ProvisioningLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>
+          }
+          update: {
+            args: Prisma.ProvisioningLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProvisioningLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProvisioningLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProvisioningLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.ProvisioningLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProvisioningLogPayload>
+          }
+          aggregate: {
+            args: Prisma.ProvisioningLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProvisioningLog>
+          }
+          groupBy: {
+            args: Prisma.ProvisioningLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProvisioningLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProvisioningLogCountArgs<ExtArgs>
+            result: $Utils.Optional<ProvisioningLogCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1012,6 +1104,7 @@ export namespace Prisma {
     user?: UserOmit
     tenant?: TenantOmit
     tenantMember?: TenantMemberOmit
+    provisioningLog?: ProvisioningLogOmit
   }
 
   /* Types for Logging */
@@ -1124,10 +1217,12 @@ export namespace Prisma {
 
   export type TenantCountOutputType = {
     tenantMembers: number
+    provisioningLogs: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenantMembers?: boolean | TenantCountOutputTypeCountTenantMembersArgs
+    provisioningLogs?: boolean | TenantCountOutputTypeCountProvisioningLogsArgs
   }
 
   // Custom InputTypes
@@ -1146,6 +1241,13 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountTenantMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TenantMemberWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountProvisioningLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProvisioningLogWhereInput
   }
 
 
@@ -2285,25 +2387,31 @@ export namespace Prisma {
   export type TenantMinAggregateOutputType = {
     id: number | null
     name: string | null
+    slug: string | null
     databaseUrl: string | null
     status: $Enums.TenantStatus | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type TenantMaxAggregateOutputType = {
     id: number | null
     name: string | null
+    slug: string | null
     databaseUrl: string | null
     status: $Enums.TenantStatus | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type TenantCountAggregateOutputType = {
     id: number
     name: number
+    slug: number
     databaseUrl: number
     status: number
     createdAt: number
+    updatedAt: number
     _all: number
   }
 
@@ -2319,25 +2427,31 @@ export namespace Prisma {
   export type TenantMinAggregateInputType = {
     id?: true
     name?: true
+    slug?: true
     databaseUrl?: true
     status?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type TenantMaxAggregateInputType = {
     id?: true
     name?: true
+    slug?: true
     databaseUrl?: true
     status?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type TenantCountAggregateInputType = {
     id?: true
     name?: true
+    slug?: true
     databaseUrl?: true
     status?: true
     createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -2430,9 +2544,11 @@ export namespace Prisma {
   export type TenantGroupByOutputType = {
     id: number
     name: string
-    databaseUrl: string
+    slug: string
+    databaseUrl: string | null
     status: $Enums.TenantStatus
     createdAt: Date
+    updatedAt: Date
     _count: TenantCountAggregateOutputType | null
     _avg: TenantAvgAggregateOutputType | null
     _sum: TenantSumAggregateOutputType | null
@@ -2457,40 +2573,50 @@ export namespace Prisma {
   export type TenantSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    slug?: boolean
     databaseUrl?: boolean
     status?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
     tenantMembers?: boolean | Tenant$tenantMembersArgs<ExtArgs>
+    provisioningLogs?: boolean | Tenant$provisioningLogsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
   export type TenantSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    slug?: boolean
     databaseUrl?: boolean
     status?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }, ExtArgs["result"]["tenant"]>
 
   export type TenantSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    slug?: boolean
     databaseUrl?: boolean
     status?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }, ExtArgs["result"]["tenant"]>
 
   export type TenantSelectScalar = {
     id?: boolean
     name?: boolean
+    slug?: boolean
     databaseUrl?: boolean
     status?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }
 
-  export type TenantOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "databaseUrl" | "status" | "createdAt", ExtArgs["result"]["tenant"]>
+  export type TenantOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "databaseUrl" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["tenant"]>
   export type TenantInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenantMembers?: boolean | Tenant$tenantMembersArgs<ExtArgs>
+    provisioningLogs?: boolean | Tenant$provisioningLogsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2500,13 +2626,16 @@ export namespace Prisma {
     name: "Tenant"
     objects: {
       tenantMembers: Prisma.$TenantMemberPayload<ExtArgs>[]
+      provisioningLogs: Prisma.$ProvisioningLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       name: string
-      databaseUrl: string
+      slug: string
+      databaseUrl: string | null
       status: $Enums.TenantStatus
       createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["tenant"]>
     composites: {}
   }
@@ -2902,6 +3031,7 @@ export namespace Prisma {
   export interface Prisma__TenantClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenantMembers<T extends Tenant$tenantMembersArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$tenantMembersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TenantMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    provisioningLogs<T extends Tenant$provisioningLogsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$provisioningLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2933,9 +3063,11 @@ export namespace Prisma {
   interface TenantFieldRefs {
     readonly id: FieldRef<"Tenant", 'Int'>
     readonly name: FieldRef<"Tenant", 'String'>
+    readonly slug: FieldRef<"Tenant", 'String'>
     readonly databaseUrl: FieldRef<"Tenant", 'String'>
     readonly status: FieldRef<"Tenant", 'TenantStatus'>
     readonly createdAt: FieldRef<"Tenant", 'DateTime'>
+    readonly updatedAt: FieldRef<"Tenant", 'DateTime'>
   }
     
 
@@ -3350,6 +3482,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TenantMemberScalarFieldEnum | TenantMemberScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.provisioningLogs
+   */
+  export type Tenant$provisioningLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    where?: ProvisioningLogWhereInput
+    orderBy?: ProvisioningLogOrderByWithRelationInput | ProvisioningLogOrderByWithRelationInput[]
+    cursor?: ProvisioningLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProvisioningLogScalarFieldEnum | ProvisioningLogScalarFieldEnum[]
   }
 
   /**
@@ -4472,6 +4628,1120 @@ export namespace Prisma {
 
 
   /**
+   * Model ProvisioningLog
+   */
+
+  export type AggregateProvisioningLog = {
+    _count: ProvisioningLogCountAggregateOutputType | null
+    _avg: ProvisioningLogAvgAggregateOutputType | null
+    _sum: ProvisioningLogSumAggregateOutputType | null
+    _min: ProvisioningLogMinAggregateOutputType | null
+    _max: ProvisioningLogMaxAggregateOutputType | null
+  }
+
+  export type ProvisioningLogAvgAggregateOutputType = {
+    id: number | null
+    tenantId: number | null
+  }
+
+  export type ProvisioningLogSumAggregateOutputType = {
+    id: number | null
+    tenantId: number | null
+  }
+
+  export type ProvisioningLogMinAggregateOutputType = {
+    id: number | null
+    tenantId: number | null
+    step: string | null
+    status: string | null
+    message: string | null
+    createdAt: Date | null
+  }
+
+  export type ProvisioningLogMaxAggregateOutputType = {
+    id: number | null
+    tenantId: number | null
+    step: string | null
+    status: string | null
+    message: string | null
+    createdAt: Date | null
+  }
+
+  export type ProvisioningLogCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    step: number
+    status: number
+    message: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ProvisioningLogAvgAggregateInputType = {
+    id?: true
+    tenantId?: true
+  }
+
+  export type ProvisioningLogSumAggregateInputType = {
+    id?: true
+    tenantId?: true
+  }
+
+  export type ProvisioningLogMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    step?: true
+    status?: true
+    message?: true
+    createdAt?: true
+  }
+
+  export type ProvisioningLogMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    step?: true
+    status?: true
+    message?: true
+    createdAt?: true
+  }
+
+  export type ProvisioningLogCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    step?: true
+    status?: true
+    message?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ProvisioningLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProvisioningLog to aggregate.
+     */
+    where?: ProvisioningLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProvisioningLogs to fetch.
+     */
+    orderBy?: ProvisioningLogOrderByWithRelationInput | ProvisioningLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProvisioningLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProvisioningLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProvisioningLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProvisioningLogs
+    **/
+    _count?: true | ProvisioningLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProvisioningLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProvisioningLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProvisioningLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProvisioningLogMaxAggregateInputType
+  }
+
+  export type GetProvisioningLogAggregateType<T extends ProvisioningLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateProvisioningLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProvisioningLog[P]>
+      : GetScalarType<T[P], AggregateProvisioningLog[P]>
+  }
+
+
+
+
+  export type ProvisioningLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProvisioningLogWhereInput
+    orderBy?: ProvisioningLogOrderByWithAggregationInput | ProvisioningLogOrderByWithAggregationInput[]
+    by: ProvisioningLogScalarFieldEnum[] | ProvisioningLogScalarFieldEnum
+    having?: ProvisioningLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProvisioningLogCountAggregateInputType | true
+    _avg?: ProvisioningLogAvgAggregateInputType
+    _sum?: ProvisioningLogSumAggregateInputType
+    _min?: ProvisioningLogMinAggregateInputType
+    _max?: ProvisioningLogMaxAggregateInputType
+  }
+
+  export type ProvisioningLogGroupByOutputType = {
+    id: number
+    tenantId: number
+    step: string
+    status: string
+    message: string | null
+    createdAt: Date
+    _count: ProvisioningLogCountAggregateOutputType | null
+    _avg: ProvisioningLogAvgAggregateOutputType | null
+    _sum: ProvisioningLogSumAggregateOutputType | null
+    _min: ProvisioningLogMinAggregateOutputType | null
+    _max: ProvisioningLogMaxAggregateOutputType | null
+  }
+
+  type GetProvisioningLogGroupByPayload<T extends ProvisioningLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProvisioningLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProvisioningLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProvisioningLogGroupByOutputType[P]>
+            : GetScalarType<T[P], ProvisioningLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProvisioningLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    step?: boolean
+    status?: boolean
+    message?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["provisioningLog"]>
+
+  export type ProvisioningLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    step?: boolean
+    status?: boolean
+    message?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["provisioningLog"]>
+
+  export type ProvisioningLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    step?: boolean
+    status?: boolean
+    message?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["provisioningLog"]>
+
+  export type ProvisioningLogSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    step?: boolean
+    status?: boolean
+    message?: boolean
+    createdAt?: boolean
+  }
+
+  export type ProvisioningLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "step" | "status" | "message" | "createdAt", ExtArgs["result"]["provisioningLog"]>
+  export type ProvisioningLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+  export type ProvisioningLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+  export type ProvisioningLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $ProvisioningLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProvisioningLog"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      tenantId: number
+      step: string
+      status: string
+      message: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["provisioningLog"]>
+    composites: {}
+  }
+
+  type ProvisioningLogGetPayload<S extends boolean | null | undefined | ProvisioningLogDefaultArgs> = $Result.GetResult<Prisma.$ProvisioningLogPayload, S>
+
+  type ProvisioningLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProvisioningLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProvisioningLogCountAggregateInputType | true
+    }
+
+  export interface ProvisioningLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProvisioningLog'], meta: { name: 'ProvisioningLog' } }
+    /**
+     * Find zero or one ProvisioningLog that matches the filter.
+     * @param {ProvisioningLogFindUniqueArgs} args - Arguments to find a ProvisioningLog
+     * @example
+     * // Get one ProvisioningLog
+     * const provisioningLog = await prisma.provisioningLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProvisioningLogFindUniqueArgs>(args: SelectSubset<T, ProvisioningLogFindUniqueArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ProvisioningLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProvisioningLogFindUniqueOrThrowArgs} args - Arguments to find a ProvisioningLog
+     * @example
+     * // Get one ProvisioningLog
+     * const provisioningLog = await prisma.provisioningLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProvisioningLogFindUniqueOrThrowArgs>(args: SelectSubset<T, ProvisioningLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProvisioningLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProvisioningLogFindFirstArgs} args - Arguments to find a ProvisioningLog
+     * @example
+     * // Get one ProvisioningLog
+     * const provisioningLog = await prisma.provisioningLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProvisioningLogFindFirstArgs>(args?: SelectSubset<T, ProvisioningLogFindFirstArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProvisioningLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProvisioningLogFindFirstOrThrowArgs} args - Arguments to find a ProvisioningLog
+     * @example
+     * // Get one ProvisioningLog
+     * const provisioningLog = await prisma.provisioningLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProvisioningLogFindFirstOrThrowArgs>(args?: SelectSubset<T, ProvisioningLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ProvisioningLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProvisioningLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProvisioningLogs
+     * const provisioningLogs = await prisma.provisioningLog.findMany()
+     * 
+     * // Get first 10 ProvisioningLogs
+     * const provisioningLogs = await prisma.provisioningLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const provisioningLogWithIdOnly = await prisma.provisioningLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProvisioningLogFindManyArgs>(args?: SelectSubset<T, ProvisioningLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ProvisioningLog.
+     * @param {ProvisioningLogCreateArgs} args - Arguments to create a ProvisioningLog.
+     * @example
+     * // Create one ProvisioningLog
+     * const ProvisioningLog = await prisma.provisioningLog.create({
+     *   data: {
+     *     // ... data to create a ProvisioningLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProvisioningLogCreateArgs>(args: SelectSubset<T, ProvisioningLogCreateArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ProvisioningLogs.
+     * @param {ProvisioningLogCreateManyArgs} args - Arguments to create many ProvisioningLogs.
+     * @example
+     * // Create many ProvisioningLogs
+     * const provisioningLog = await prisma.provisioningLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProvisioningLogCreateManyArgs>(args?: SelectSubset<T, ProvisioningLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProvisioningLogs and returns the data saved in the database.
+     * @param {ProvisioningLogCreateManyAndReturnArgs} args - Arguments to create many ProvisioningLogs.
+     * @example
+     * // Create many ProvisioningLogs
+     * const provisioningLog = await prisma.provisioningLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProvisioningLogs and only return the `id`
+     * const provisioningLogWithIdOnly = await prisma.provisioningLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProvisioningLogCreateManyAndReturnArgs>(args?: SelectSubset<T, ProvisioningLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ProvisioningLog.
+     * @param {ProvisioningLogDeleteArgs} args - Arguments to delete one ProvisioningLog.
+     * @example
+     * // Delete one ProvisioningLog
+     * const ProvisioningLog = await prisma.provisioningLog.delete({
+     *   where: {
+     *     // ... filter to delete one ProvisioningLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProvisioningLogDeleteArgs>(args: SelectSubset<T, ProvisioningLogDeleteArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ProvisioningLog.
+     * @param {ProvisioningLogUpdateArgs} args - Arguments to update one ProvisioningLog.
+     * @example
+     * // Update one ProvisioningLog
+     * const provisioningLog = await prisma.provisioningLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProvisioningLogUpdateArgs>(args: SelectSubset<T, ProvisioningLogUpdateArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ProvisioningLogs.
+     * @param {ProvisioningLogDeleteManyArgs} args - Arguments to filter ProvisioningLogs to delete.
+     * @example
+     * // Delete a few ProvisioningLogs
+     * const { count } = await prisma.provisioningLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProvisioningLogDeleteManyArgs>(args?: SelectSubset<T, ProvisioningLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProvisioningLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProvisioningLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProvisioningLogs
+     * const provisioningLog = await prisma.provisioningLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProvisioningLogUpdateManyArgs>(args: SelectSubset<T, ProvisioningLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProvisioningLogs and returns the data updated in the database.
+     * @param {ProvisioningLogUpdateManyAndReturnArgs} args - Arguments to update many ProvisioningLogs.
+     * @example
+     * // Update many ProvisioningLogs
+     * const provisioningLog = await prisma.provisioningLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProvisioningLogs and only return the `id`
+     * const provisioningLogWithIdOnly = await prisma.provisioningLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProvisioningLogUpdateManyAndReturnArgs>(args: SelectSubset<T, ProvisioningLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ProvisioningLog.
+     * @param {ProvisioningLogUpsertArgs} args - Arguments to update or create a ProvisioningLog.
+     * @example
+     * // Update or create a ProvisioningLog
+     * const provisioningLog = await prisma.provisioningLog.upsert({
+     *   create: {
+     *     // ... data to create a ProvisioningLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProvisioningLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProvisioningLogUpsertArgs>(args: SelectSubset<T, ProvisioningLogUpsertArgs<ExtArgs>>): Prisma__ProvisioningLogClient<$Result.GetResult<Prisma.$ProvisioningLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ProvisioningLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProvisioningLogCountArgs} args - Arguments to filter ProvisioningLogs to count.
+     * @example
+     * // Count the number of ProvisioningLogs
+     * const count = await prisma.provisioningLog.count({
+     *   where: {
+     *     // ... the filter for the ProvisioningLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProvisioningLogCountArgs>(
+      args?: Subset<T, ProvisioningLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProvisioningLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProvisioningLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProvisioningLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProvisioningLogAggregateArgs>(args: Subset<T, ProvisioningLogAggregateArgs>): Prisma.PrismaPromise<GetProvisioningLogAggregateType<T>>
+
+    /**
+     * Group by ProvisioningLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProvisioningLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProvisioningLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProvisioningLogGroupByArgs['orderBy'] }
+        : { orderBy?: ProvisioningLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProvisioningLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProvisioningLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProvisioningLog model
+   */
+  readonly fields: ProvisioningLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProvisioningLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProvisioningLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProvisioningLog model
+   */
+  interface ProvisioningLogFieldRefs {
+    readonly id: FieldRef<"ProvisioningLog", 'Int'>
+    readonly tenantId: FieldRef<"ProvisioningLog", 'Int'>
+    readonly step: FieldRef<"ProvisioningLog", 'String'>
+    readonly status: FieldRef<"ProvisioningLog", 'String'>
+    readonly message: FieldRef<"ProvisioningLog", 'String'>
+    readonly createdAt: FieldRef<"ProvisioningLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProvisioningLog findUnique
+   */
+  export type ProvisioningLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ProvisioningLog to fetch.
+     */
+    where: ProvisioningLogWhereUniqueInput
+  }
+
+  /**
+   * ProvisioningLog findUniqueOrThrow
+   */
+  export type ProvisioningLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ProvisioningLog to fetch.
+     */
+    where: ProvisioningLogWhereUniqueInput
+  }
+
+  /**
+   * ProvisioningLog findFirst
+   */
+  export type ProvisioningLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ProvisioningLog to fetch.
+     */
+    where?: ProvisioningLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProvisioningLogs to fetch.
+     */
+    orderBy?: ProvisioningLogOrderByWithRelationInput | ProvisioningLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProvisioningLogs.
+     */
+    cursor?: ProvisioningLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProvisioningLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProvisioningLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProvisioningLogs.
+     */
+    distinct?: ProvisioningLogScalarFieldEnum | ProvisioningLogScalarFieldEnum[]
+  }
+
+  /**
+   * ProvisioningLog findFirstOrThrow
+   */
+  export type ProvisioningLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ProvisioningLog to fetch.
+     */
+    where?: ProvisioningLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProvisioningLogs to fetch.
+     */
+    orderBy?: ProvisioningLogOrderByWithRelationInput | ProvisioningLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProvisioningLogs.
+     */
+    cursor?: ProvisioningLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProvisioningLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProvisioningLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProvisioningLogs.
+     */
+    distinct?: ProvisioningLogScalarFieldEnum | ProvisioningLogScalarFieldEnum[]
+  }
+
+  /**
+   * ProvisioningLog findMany
+   */
+  export type ProvisioningLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ProvisioningLogs to fetch.
+     */
+    where?: ProvisioningLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProvisioningLogs to fetch.
+     */
+    orderBy?: ProvisioningLogOrderByWithRelationInput | ProvisioningLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProvisioningLogs.
+     */
+    cursor?: ProvisioningLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProvisioningLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProvisioningLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProvisioningLogs.
+     */
+    distinct?: ProvisioningLogScalarFieldEnum | ProvisioningLogScalarFieldEnum[]
+  }
+
+  /**
+   * ProvisioningLog create
+   */
+  export type ProvisioningLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProvisioningLog.
+     */
+    data: XOR<ProvisioningLogCreateInput, ProvisioningLogUncheckedCreateInput>
+  }
+
+  /**
+   * ProvisioningLog createMany
+   */
+  export type ProvisioningLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProvisioningLogs.
+     */
+    data: ProvisioningLogCreateManyInput | ProvisioningLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProvisioningLog createManyAndReturn
+   */
+  export type ProvisioningLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many ProvisioningLogs.
+     */
+    data: ProvisioningLogCreateManyInput | ProvisioningLogCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProvisioningLog update
+   */
+  export type ProvisioningLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProvisioningLog.
+     */
+    data: XOR<ProvisioningLogUpdateInput, ProvisioningLogUncheckedUpdateInput>
+    /**
+     * Choose, which ProvisioningLog to update.
+     */
+    where: ProvisioningLogWhereUniqueInput
+  }
+
+  /**
+   * ProvisioningLog updateMany
+   */
+  export type ProvisioningLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProvisioningLogs.
+     */
+    data: XOR<ProvisioningLogUpdateManyMutationInput, ProvisioningLogUncheckedUpdateManyInput>
+    /**
+     * Filter which ProvisioningLogs to update
+     */
+    where?: ProvisioningLogWhereInput
+    /**
+     * Limit how many ProvisioningLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProvisioningLog updateManyAndReturn
+   */
+  export type ProvisioningLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * The data used to update ProvisioningLogs.
+     */
+    data: XOR<ProvisioningLogUpdateManyMutationInput, ProvisioningLogUncheckedUpdateManyInput>
+    /**
+     * Filter which ProvisioningLogs to update
+     */
+    where?: ProvisioningLogWhereInput
+    /**
+     * Limit how many ProvisioningLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProvisioningLog upsert
+   */
+  export type ProvisioningLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProvisioningLog to update in case it exists.
+     */
+    where: ProvisioningLogWhereUniqueInput
+    /**
+     * In case the ProvisioningLog found by the `where` argument doesn't exist, create a new ProvisioningLog with this data.
+     */
+    create: XOR<ProvisioningLogCreateInput, ProvisioningLogUncheckedCreateInput>
+    /**
+     * In case the ProvisioningLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProvisioningLogUpdateInput, ProvisioningLogUncheckedUpdateInput>
+  }
+
+  /**
+   * ProvisioningLog delete
+   */
+  export type ProvisioningLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+    /**
+     * Filter which ProvisioningLog to delete.
+     */
+    where: ProvisioningLogWhereUniqueInput
+  }
+
+  /**
+   * ProvisioningLog deleteMany
+   */
+  export type ProvisioningLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProvisioningLogs to delete
+     */
+    where?: ProvisioningLogWhereInput
+    /**
+     * Limit how many ProvisioningLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProvisioningLog without action
+   */
+  export type ProvisioningLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProvisioningLog
+     */
+    select?: ProvisioningLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProvisioningLog
+     */
+    omit?: ProvisioningLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProvisioningLogInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -4499,9 +5769,11 @@ export namespace Prisma {
   export const TenantScalarFieldEnum: {
     id: 'id',
     name: 'name',
+    slug: 'slug',
     databaseUrl: 'databaseUrl',
     status: 'status',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type TenantScalarFieldEnum = (typeof TenantScalarFieldEnum)[keyof typeof TenantScalarFieldEnum]
@@ -4515,6 +5787,18 @@ export namespace Prisma {
   };
 
   export type TenantMemberScalarFieldEnum = (typeof TenantMemberScalarFieldEnum)[keyof typeof TenantMemberScalarFieldEnum]
+
+
+  export const ProvisioningLogScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    step: 'step',
+    status: 'status',
+    message: 'message',
+    createdAt: 'createdAt'
+  };
+
+  export type ProvisioningLogScalarFieldEnum = (typeof ProvisioningLogScalarFieldEnum)[keyof typeof ProvisioningLogScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -4531,6 +5815,14 @@ export namespace Prisma {
   };
 
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+  export const NullsOrder: {
+    first: 'first',
+    last: 'last'
+  };
+
+  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
   /**
@@ -4702,23 +5994,30 @@ export namespace Prisma {
     NOT?: TenantWhereInput | TenantWhereInput[]
     id?: IntFilter<"Tenant"> | number
     name?: StringFilter<"Tenant"> | string
-    databaseUrl?: StringFilter<"Tenant"> | string
+    slug?: StringFilter<"Tenant"> | string
+    databaseUrl?: StringNullableFilter<"Tenant"> | string | null
     status?: EnumTenantStatusFilter<"Tenant"> | $Enums.TenantStatus
     createdAt?: DateTimeFilter<"Tenant"> | Date | string
+    updatedAt?: DateTimeFilter<"Tenant"> | Date | string
     tenantMembers?: TenantMemberListRelationFilter
+    provisioningLogs?: ProvisioningLogListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    databaseUrl?: SortOrder
+    slug?: SortOrder
+    databaseUrl?: SortOrderInput | SortOrder
     status?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     tenantMembers?: TenantMemberOrderByRelationAggregateInput
+    provisioningLogs?: ProvisioningLogOrderByRelationAggregateInput
   }
 
   export type TenantWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    slug?: string
     databaseUrl?: string
     AND?: TenantWhereInput | TenantWhereInput[]
     OR?: TenantWhereInput[]
@@ -4726,15 +6025,19 @@ export namespace Prisma {
     name?: StringFilter<"Tenant"> | string
     status?: EnumTenantStatusFilter<"Tenant"> | $Enums.TenantStatus
     createdAt?: DateTimeFilter<"Tenant"> | Date | string
+    updatedAt?: DateTimeFilter<"Tenant"> | Date | string
     tenantMembers?: TenantMemberListRelationFilter
-  }, "id" | "databaseUrl">
+    provisioningLogs?: ProvisioningLogListRelationFilter
+  }, "id" | "slug" | "databaseUrl">
 
   export type TenantOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    databaseUrl?: SortOrder
+    slug?: SortOrder
+    databaseUrl?: SortOrderInput | SortOrder
     status?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: TenantCountOrderByAggregateInput
     _avg?: TenantAvgOrderByAggregateInput
     _max?: TenantMaxOrderByAggregateInput
@@ -4748,9 +6051,11 @@ export namespace Prisma {
     NOT?: TenantScalarWhereWithAggregatesInput | TenantScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Tenant"> | number
     name?: StringWithAggregatesFilter<"Tenant"> | string
-    databaseUrl?: StringWithAggregatesFilter<"Tenant"> | string
+    slug?: StringWithAggregatesFilter<"Tenant"> | string
+    databaseUrl?: StringNullableWithAggregatesFilter<"Tenant"> | string | null
     status?: EnumTenantStatusWithAggregatesFilter<"Tenant"> | $Enums.TenantStatus
     createdAt?: DateTimeWithAggregatesFilter<"Tenant"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Tenant"> | Date | string
   }
 
   export type TenantMemberWhereInput = {
@@ -4807,6 +6112,68 @@ export namespace Prisma {
     userId?: IntWithAggregatesFilter<"TenantMember"> | number
     tenantId?: IntWithAggregatesFilter<"TenantMember"> | number
     role?: EnumMembershipRoleWithAggregatesFilter<"TenantMember"> | $Enums.MembershipRole
+  }
+
+  export type ProvisioningLogWhereInput = {
+    AND?: ProvisioningLogWhereInput | ProvisioningLogWhereInput[]
+    OR?: ProvisioningLogWhereInput[]
+    NOT?: ProvisioningLogWhereInput | ProvisioningLogWhereInput[]
+    id?: IntFilter<"ProvisioningLog"> | number
+    tenantId?: IntFilter<"ProvisioningLog"> | number
+    step?: StringFilter<"ProvisioningLog"> | string
+    status?: StringFilter<"ProvisioningLog"> | string
+    message?: StringNullableFilter<"ProvisioningLog"> | string | null
+    createdAt?: DateTimeFilter<"ProvisioningLog"> | Date | string
+    tenant?: XOR<TenantScalarRelationFilter, TenantWhereInput>
+  }
+
+  export type ProvisioningLogOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    step?: SortOrder
+    status?: SortOrder
+    message?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type ProvisioningLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: ProvisioningLogWhereInput | ProvisioningLogWhereInput[]
+    OR?: ProvisioningLogWhereInput[]
+    NOT?: ProvisioningLogWhereInput | ProvisioningLogWhereInput[]
+    tenantId?: IntFilter<"ProvisioningLog"> | number
+    step?: StringFilter<"ProvisioningLog"> | string
+    status?: StringFilter<"ProvisioningLog"> | string
+    message?: StringNullableFilter<"ProvisioningLog"> | string | null
+    createdAt?: DateTimeFilter<"ProvisioningLog"> | Date | string
+    tenant?: XOR<TenantScalarRelationFilter, TenantWhereInput>
+  }, "id">
+
+  export type ProvisioningLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    step?: SortOrder
+    status?: SortOrder
+    message?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ProvisioningLogCountOrderByAggregateInput
+    _avg?: ProvisioningLogAvgOrderByAggregateInput
+    _max?: ProvisioningLogMaxOrderByAggregateInput
+    _min?: ProvisioningLogMinOrderByAggregateInput
+    _sum?: ProvisioningLogSumOrderByAggregateInput
+  }
+
+  export type ProvisioningLogScalarWhereWithAggregatesInput = {
+    AND?: ProvisioningLogScalarWhereWithAggregatesInput | ProvisioningLogScalarWhereWithAggregatesInput[]
+    OR?: ProvisioningLogScalarWhereWithAggregatesInput[]
+    NOT?: ProvisioningLogScalarWhereWithAggregatesInput | ProvisioningLogScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"ProvisioningLog"> | number
+    tenantId?: IntWithAggregatesFilter<"ProvisioningLog"> | number
+    step?: StringWithAggregatesFilter<"ProvisioningLog"> | string
+    status?: StringWithAggregatesFilter<"ProvisioningLog"> | string
+    message?: StringNullableWithAggregatesFilter<"ProvisioningLog"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ProvisioningLog"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -4868,59 +6235,77 @@ export namespace Prisma {
 
   export type TenantCreateInput = {
     name: string
-    databaseUrl: string
+    slug: string
+    databaseUrl?: string | null
     status?: $Enums.TenantStatus
     createdAt?: Date | string
+    updatedAt?: Date | string
     tenantMembers?: TenantMemberCreateNestedManyWithoutTenantInput
+    provisioningLogs?: ProvisioningLogCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
     id?: number
     name: string
-    databaseUrl: string
+    slug: string
+    databaseUrl?: string | null
     status?: $Enums.TenantStatus
     createdAt?: Date | string
+    updatedAt?: Date | string
     tenantMembers?: TenantMemberUncheckedCreateNestedManyWithoutTenantInput
+    provisioningLogs?: ProvisioningLogUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
-    databaseUrl?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenantMembers?: TenantMemberUpdateManyWithoutTenantNestedInput
+    provisioningLogs?: ProvisioningLogUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    databaseUrl?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenantMembers?: TenantMemberUncheckedUpdateManyWithoutTenantNestedInput
+    provisioningLogs?: ProvisioningLogUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
     id?: number
     name: string
-    databaseUrl: string
+    slug: string
+    databaseUrl?: string | null
     status?: $Enums.TenantStatus
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type TenantUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
-    databaseUrl?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TenantUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    databaseUrl?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TenantMemberCreateInput = {
@@ -4965,6 +6350,65 @@ export namespace Prisma {
     userId?: IntFieldUpdateOperationsInput | number
     tenantId?: IntFieldUpdateOperationsInput | number
     role?: EnumMembershipRoleFieldUpdateOperationsInput | $Enums.MembershipRole
+  }
+
+  export type ProvisioningLogCreateInput = {
+    step: string
+    status: string
+    message?: string | null
+    createdAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutProvisioningLogsInput
+  }
+
+  export type ProvisioningLogUncheckedCreateInput = {
+    id?: number
+    tenantId: number
+    step: string
+    status: string
+    message?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProvisioningLogUpdateInput = {
+    step?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutProvisioningLogsNestedInput
+  }
+
+  export type ProvisioningLogUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    tenantId?: IntFieldUpdateOperationsInput | number
+    step?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProvisioningLogCreateManyInput = {
+    id?: number
+    tenantId: number
+    step: string
+    status: string
+    message?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProvisioningLogUpdateManyMutationInput = {
+    step?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProvisioningLogUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    tenantId?: IntFieldUpdateOperationsInput | number
+    step?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -5111,6 +6555,21 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type StringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
   export type EnumTenantStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.TenantStatus | EnumTenantStatusFieldRefInput<$PrismaModel>
     in?: $Enums.TenantStatus[] | ListEnumTenantStatusFieldRefInput<$PrismaModel>
@@ -5118,12 +6577,29 @@ export namespace Prisma {
     not?: NestedEnumTenantStatusFilter<$PrismaModel> | $Enums.TenantStatus
   }
 
+  export type ProvisioningLogListRelationFilter = {
+    every?: ProvisioningLogWhereInput
+    some?: ProvisioningLogWhereInput
+    none?: ProvisioningLogWhereInput
+  }
+
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
+  }
+
+  export type ProvisioningLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type TenantCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     databaseUrl?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type TenantAvgOrderByAggregateInput = {
@@ -5133,21 +6609,43 @@ export namespace Prisma {
   export type TenantMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     databaseUrl?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type TenantMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     databaseUrl?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type TenantSumOrderByAggregateInput = {
     id?: SortOrder
+  }
+
+  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
   export type EnumTenantStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -5225,6 +6723,43 @@ export namespace Prisma {
     _max?: NestedEnumMembershipRoleFilter<$PrismaModel>
   }
 
+  export type ProvisioningLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    step?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProvisioningLogAvgOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+  }
+
+  export type ProvisioningLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    step?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProvisioningLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    step?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProvisioningLogSumOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+  }
+
   export type TenantMemberCreateNestedManyWithoutUserInput = {
     create?: XOR<TenantMemberCreateWithoutUserInput, TenantMemberUncheckedCreateWithoutUserInput> | TenantMemberCreateWithoutUserInput[] | TenantMemberUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TenantMemberCreateOrConnectWithoutUserInput | TenantMemberCreateOrConnectWithoutUserInput[]
@@ -5294,11 +6829,29 @@ export namespace Prisma {
     connect?: TenantMemberWhereUniqueInput | TenantMemberWhereUniqueInput[]
   }
 
+  export type ProvisioningLogCreateNestedManyWithoutTenantInput = {
+    create?: XOR<ProvisioningLogCreateWithoutTenantInput, ProvisioningLogUncheckedCreateWithoutTenantInput> | ProvisioningLogCreateWithoutTenantInput[] | ProvisioningLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ProvisioningLogCreateOrConnectWithoutTenantInput | ProvisioningLogCreateOrConnectWithoutTenantInput[]
+    createMany?: ProvisioningLogCreateManyTenantInputEnvelope
+    connect?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+  }
+
   export type TenantMemberUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<TenantMemberCreateWithoutTenantInput, TenantMemberUncheckedCreateWithoutTenantInput> | TenantMemberCreateWithoutTenantInput[] | TenantMemberUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: TenantMemberCreateOrConnectWithoutTenantInput | TenantMemberCreateOrConnectWithoutTenantInput[]
     createMany?: TenantMemberCreateManyTenantInputEnvelope
     connect?: TenantMemberWhereUniqueInput | TenantMemberWhereUniqueInput[]
+  }
+
+  export type ProvisioningLogUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<ProvisioningLogCreateWithoutTenantInput, ProvisioningLogUncheckedCreateWithoutTenantInput> | ProvisioningLogCreateWithoutTenantInput[] | ProvisioningLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ProvisioningLogCreateOrConnectWithoutTenantInput | ProvisioningLogCreateOrConnectWithoutTenantInput[]
+    createMany?: ProvisioningLogCreateManyTenantInputEnvelope
+    connect?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+  }
+
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
   }
 
   export type EnumTenantStatusFieldUpdateOperationsInput = {
@@ -5319,6 +6872,20 @@ export namespace Prisma {
     deleteMany?: TenantMemberScalarWhereInput | TenantMemberScalarWhereInput[]
   }
 
+  export type ProvisioningLogUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<ProvisioningLogCreateWithoutTenantInput, ProvisioningLogUncheckedCreateWithoutTenantInput> | ProvisioningLogCreateWithoutTenantInput[] | ProvisioningLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ProvisioningLogCreateOrConnectWithoutTenantInput | ProvisioningLogCreateOrConnectWithoutTenantInput[]
+    upsert?: ProvisioningLogUpsertWithWhereUniqueWithoutTenantInput | ProvisioningLogUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: ProvisioningLogCreateManyTenantInputEnvelope
+    set?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    disconnect?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    delete?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    connect?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    update?: ProvisioningLogUpdateWithWhereUniqueWithoutTenantInput | ProvisioningLogUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: ProvisioningLogUpdateManyWithWhereWithoutTenantInput | ProvisioningLogUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: ProvisioningLogScalarWhereInput | ProvisioningLogScalarWhereInput[]
+  }
+
   export type TenantMemberUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<TenantMemberCreateWithoutTenantInput, TenantMemberUncheckedCreateWithoutTenantInput> | TenantMemberCreateWithoutTenantInput[] | TenantMemberUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: TenantMemberCreateOrConnectWithoutTenantInput | TenantMemberCreateOrConnectWithoutTenantInput[]
@@ -5331,6 +6898,20 @@ export namespace Prisma {
     update?: TenantMemberUpdateWithWhereUniqueWithoutTenantInput | TenantMemberUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: TenantMemberUpdateManyWithWhereWithoutTenantInput | TenantMemberUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: TenantMemberScalarWhereInput | TenantMemberScalarWhereInput[]
+  }
+
+  export type ProvisioningLogUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<ProvisioningLogCreateWithoutTenantInput, ProvisioningLogUncheckedCreateWithoutTenantInput> | ProvisioningLogCreateWithoutTenantInput[] | ProvisioningLogUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: ProvisioningLogCreateOrConnectWithoutTenantInput | ProvisioningLogCreateOrConnectWithoutTenantInput[]
+    upsert?: ProvisioningLogUpsertWithWhereUniqueWithoutTenantInput | ProvisioningLogUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: ProvisioningLogCreateManyTenantInputEnvelope
+    set?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    disconnect?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    delete?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    connect?: ProvisioningLogWhereUniqueInput | ProvisioningLogWhereUniqueInput[]
+    update?: ProvisioningLogUpdateWithWhereUniqueWithoutTenantInput | ProvisioningLogUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: ProvisioningLogUpdateManyWithWhereWithoutTenantInput | ProvisioningLogUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: ProvisioningLogScalarWhereInput | ProvisioningLogScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutTenantMembersInput = {
@@ -5363,6 +6944,20 @@ export namespace Prisma {
     upsert?: TenantUpsertWithoutTenantMembersInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutTenantMembersInput, TenantUpdateWithoutTenantMembersInput>, TenantUncheckedUpdateWithoutTenantMembersInput>
+  }
+
+  export type TenantCreateNestedOneWithoutProvisioningLogsInput = {
+    create?: XOR<TenantCreateWithoutProvisioningLogsInput, TenantUncheckedCreateWithoutProvisioningLogsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutProvisioningLogsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type TenantUpdateOneRequiredWithoutProvisioningLogsNestedInput = {
+    create?: XOR<TenantCreateWithoutProvisioningLogsInput, TenantUncheckedCreateWithoutProvisioningLogsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutProvisioningLogsInput
+    upsert?: TenantUpsertWithoutProvisioningLogsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutProvisioningLogsInput, TenantUpdateWithoutProvisioningLogsInput>, TenantUncheckedUpdateWithoutProvisioningLogsInput>
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -5476,11 +7071,53 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedStringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
   export type NestedEnumTenantStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.TenantStatus | EnumTenantStatusFieldRefInput<$PrismaModel>
     in?: $Enums.TenantStatus[] | ListEnumTenantStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.TenantStatus[] | ListEnumTenantStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumTenantStatusFilter<$PrismaModel> | $Enums.TenantStatus
+  }
+
+  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumTenantStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -5578,6 +7215,31 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProvisioningLogCreateWithoutTenantInput = {
+    step: string
+    status: string
+    message?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProvisioningLogUncheckedCreateWithoutTenantInput = {
+    id?: number
+    step: string
+    status: string
+    message?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProvisioningLogCreateOrConnectWithoutTenantInput = {
+    where: ProvisioningLogWhereUniqueInput
+    create: XOR<ProvisioningLogCreateWithoutTenantInput, ProvisioningLogUncheckedCreateWithoutTenantInput>
+  }
+
+  export type ProvisioningLogCreateManyTenantInputEnvelope = {
+    data: ProvisioningLogCreateManyTenantInput | ProvisioningLogCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantMemberUpsertWithWhereUniqueWithoutTenantInput = {
     where: TenantMemberWhereUniqueInput
     update: XOR<TenantMemberUpdateWithoutTenantInput, TenantMemberUncheckedUpdateWithoutTenantInput>
@@ -5592,6 +7254,34 @@ export namespace Prisma {
   export type TenantMemberUpdateManyWithWhereWithoutTenantInput = {
     where: TenantMemberScalarWhereInput
     data: XOR<TenantMemberUpdateManyMutationInput, TenantMemberUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type ProvisioningLogUpsertWithWhereUniqueWithoutTenantInput = {
+    where: ProvisioningLogWhereUniqueInput
+    update: XOR<ProvisioningLogUpdateWithoutTenantInput, ProvisioningLogUncheckedUpdateWithoutTenantInput>
+    create: XOR<ProvisioningLogCreateWithoutTenantInput, ProvisioningLogUncheckedCreateWithoutTenantInput>
+  }
+
+  export type ProvisioningLogUpdateWithWhereUniqueWithoutTenantInput = {
+    where: ProvisioningLogWhereUniqueInput
+    data: XOR<ProvisioningLogUpdateWithoutTenantInput, ProvisioningLogUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type ProvisioningLogUpdateManyWithWhereWithoutTenantInput = {
+    where: ProvisioningLogScalarWhereInput
+    data: XOR<ProvisioningLogUpdateManyMutationInput, ProvisioningLogUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type ProvisioningLogScalarWhereInput = {
+    AND?: ProvisioningLogScalarWhereInput | ProvisioningLogScalarWhereInput[]
+    OR?: ProvisioningLogScalarWhereInput[]
+    NOT?: ProvisioningLogScalarWhereInput | ProvisioningLogScalarWhereInput[]
+    id?: IntFilter<"ProvisioningLog"> | number
+    tenantId?: IntFilter<"ProvisioningLog"> | number
+    step?: StringFilter<"ProvisioningLog"> | string
+    status?: StringFilter<"ProvisioningLog"> | string
+    message?: StringNullableFilter<"ProvisioningLog"> | string | null
+    createdAt?: DateTimeFilter<"ProvisioningLog"> | Date | string
   }
 
   export type UserCreateWithoutTenantMembersInput = {
@@ -5616,17 +7306,23 @@ export namespace Prisma {
 
   export type TenantCreateWithoutTenantMembersInput = {
     name: string
-    databaseUrl: string
+    slug: string
+    databaseUrl?: string | null
     status?: $Enums.TenantStatus
     createdAt?: Date | string
+    updatedAt?: Date | string
+    provisioningLogs?: ProvisioningLogCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTenantMembersInput = {
     id?: number
     name: string
-    databaseUrl: string
+    slug: string
+    databaseUrl?: string | null
     status?: $Enums.TenantStatus
     createdAt?: Date | string
+    updatedAt?: Date | string
+    provisioningLogs?: ProvisioningLogUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTenantMembersInput = {
@@ -5673,17 +7369,81 @@ export namespace Prisma {
 
   export type TenantUpdateWithoutTenantMembersInput = {
     name?: StringFieldUpdateOperationsInput | string
-    databaseUrl?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    provisioningLogs?: ProvisioningLogUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTenantMembersInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    databaseUrl?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    provisioningLogs?: ProvisioningLogUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantCreateWithoutProvisioningLogsInput = {
+    name: string
+    slug: string
+    databaseUrl?: string | null
+    status?: $Enums.TenantStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenantMembers?: TenantMemberCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutProvisioningLogsInput = {
+    id?: number
+    name: string
+    slug: string
+    databaseUrl?: string | null
+    status?: $Enums.TenantStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenantMembers?: TenantMemberUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutProvisioningLogsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutProvisioningLogsInput, TenantUncheckedCreateWithoutProvisioningLogsInput>
+  }
+
+  export type TenantUpsertWithoutProvisioningLogsInput = {
+    update: XOR<TenantUpdateWithoutProvisioningLogsInput, TenantUncheckedUpdateWithoutProvisioningLogsInput>
+    create: XOR<TenantCreateWithoutProvisioningLogsInput, TenantUncheckedCreateWithoutProvisioningLogsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutProvisioningLogsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutProvisioningLogsInput, TenantUncheckedUpdateWithoutProvisioningLogsInput>
+  }
+
+  export type TenantUpdateWithoutProvisioningLogsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenantMembers?: TenantMemberUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutProvisioningLogsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    databaseUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenantMembers?: TenantMemberUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantMemberCreateManyUserInput = {
@@ -5715,6 +7475,14 @@ export namespace Prisma {
     role?: $Enums.MembershipRole
   }
 
+  export type ProvisioningLogCreateManyTenantInput = {
+    id?: number
+    step: string
+    status: string
+    message?: string | null
+    createdAt?: Date | string
+  }
+
   export type TenantMemberUpdateWithoutTenantInput = {
     role?: EnumMembershipRoleFieldUpdateOperationsInput | $Enums.MembershipRole
     user?: UserUpdateOneRequiredWithoutTenantMembersNestedInput
@@ -5730,6 +7498,29 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     userId?: IntFieldUpdateOperationsInput | number
     role?: EnumMembershipRoleFieldUpdateOperationsInput | $Enums.MembershipRole
+  }
+
+  export type ProvisioningLogUpdateWithoutTenantInput = {
+    step?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProvisioningLogUncheckedUpdateWithoutTenantInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    step?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProvisioningLogUncheckedUpdateManyWithoutTenantInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    step?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

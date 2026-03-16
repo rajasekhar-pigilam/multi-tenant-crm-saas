@@ -14,7 +14,9 @@ enum UserStatus {
 }
 
 enum TenantStatus {
+  PROVISIONING
   ACTIVE
+  FAILED
   SUSPENDED
   ARCHIVED
 }
@@ -37,12 +39,15 @@ model User {
 }
 
 model Tenant {
-  id            Int            @id @default(autoincrement())
-  name          String
-  databaseUrl   String         @unique @map("database_url")
-  status        TenantStatus   @default(ACTIVE)
-  createdAt     DateTime       @default(now()) @map("created_at")
-  tenantMembers TenantMember[]
+  id               Int               @id @default(autoincrement())
+  name             String
+  slug             String            @unique
+  databaseUrl      String?           @unique @map("database_url")
+  status           TenantStatus      @default(PROVISIONING)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  tenantMembers    TenantMember[]
+  provisioningLogs ProvisioningLog[]
 
   @@map("tenants")
 }
@@ -57,4 +62,16 @@ model TenantMember {
 
   @@unique([userId, tenantId])
   @@map("tenant_members")
+}
+
+model ProvisioningLog {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int      @map("tenant_id")
+  step      String
+  status    String
+  message   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("provisioning_logs")
 }

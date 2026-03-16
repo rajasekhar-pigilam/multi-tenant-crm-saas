@@ -75,21 +75,31 @@ async function seed() {
     })
   ]);
 
+  const slugs: Record<string, string> = {
+    'ABC Corp': 'abc-corp',
+    'XYZ Ltd': 'xyz-ltd',
+    'Demo Workspace': 'demo-workspace'
+  };
+
   const tenantRecords: Array<{ id: number; name: string; databaseUrl: string }> = [];
   for (const tenantInfo of tenantDbUrls) {
+    const slug = slugs[tenantInfo.name] ?? tenantInfo.name.toLowerCase().replace(/\s+/g, '-');
     const record = await masterPrisma.tenant.upsert({
       where: { databaseUrl: tenantInfo.url! },
       update: {
         name: tenantInfo.name,
+        slug,
         status: TenantStatus.ACTIVE
       },
       create: {
         name: tenantInfo.name,
+        slug,
         databaseUrl: tenantInfo.url!,
         status: TenantStatus.ACTIVE
       }
     });
-    tenantRecords.push(record);
+    if (!record.databaseUrl) throw new Error(`Tenant "${tenantInfo.name}" has no databaseUrl`);
+    tenantRecords.push({ id: record.id, name: record.name, databaseUrl: record.databaseUrl });
   }
 
   const [abcTenant, xyzTenant] = tenantRecords;

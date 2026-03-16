@@ -131,9 +131,11 @@ exports.Prisma.UserScalarFieldEnum = {
 exports.Prisma.TenantScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  slug: 'slug',
   databaseUrl: 'databaseUrl',
   status: 'status',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.TenantMemberScalarFieldEnum = {
@@ -141,6 +143,15 @@ exports.Prisma.TenantMemberScalarFieldEnum = {
   userId: 'userId',
   tenantId: 'tenantId',
   role: 'role'
+};
+
+exports.Prisma.ProvisioningLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  step: 'step',
+  status: 'status',
+  message: 'message',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -152,6 +163,11 @@ exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 };
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
 exports.UserStatus = exports.$Enums.UserStatus = {
   ACTIVE: 'ACTIVE',
   INVITED: 'INVITED',
@@ -159,7 +175,9 @@ exports.UserStatus = exports.$Enums.UserStatus = {
 };
 
 exports.TenantStatus = exports.$Enums.TenantStatus = {
+  PROVISIONING: 'PROVISIONING',
   ACTIVE: 'ACTIVE',
+  FAILED: 'FAILED',
   SUSPENDED: 'SUSPENDED',
   ARCHIVED: 'ARCHIVED'
 };
@@ -173,7 +191,8 @@ exports.MembershipRole = exports.$Enums.MembershipRole = {
 exports.Prisma.ModelName = {
   User: 'User',
   Tenant: 'Tenant',
-  TenantMember: 'TenantMember'
+  TenantMember: 'TenantMember',
+  ProvisioningLog: 'ProvisioningLog'
 };
 
 /**
