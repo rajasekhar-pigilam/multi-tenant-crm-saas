@@ -5,6 +5,7 @@
   "scripts": {
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "lint": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {

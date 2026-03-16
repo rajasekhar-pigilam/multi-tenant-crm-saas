@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "frontend/dist/frontend/browser",
+  "installCommand": "npm install",
+  "functions": {
+    "api/[...path].js": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
