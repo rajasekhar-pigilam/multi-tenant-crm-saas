@@ -19,6 +19,7 @@ export class CustomersService {
     email: string;
     phone?: string;
     company?: string;
+    countryCode?: string;
   }): Observable<Customer> {
     return this.http.post<Customer>(`${environment.apiBaseUrl}/customers`, payload);
   }

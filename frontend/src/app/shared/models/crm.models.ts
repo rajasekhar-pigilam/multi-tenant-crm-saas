@@ -1,9 +1,18 @@
+export interface Country {
+  id: number;
+  code: string;
+  name: string;
+  isActive: boolean;
+}
+
 export interface Customer {
   id: number;
   name: string;
   email: string;
   phone?: string;
   company?: string;
+  countryCode?: string;
+  country?: Country;
   createdAt: string;
 }
 

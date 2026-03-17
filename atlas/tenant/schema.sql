@@ -27,24 +27,40 @@ CREATE TABLE "users" (
   UNIQUE ("email")
 );
 
-CREATE TABLE "customers" (
-  "id"         serial      NOT NULL,
-  "name"       text        NOT NULL,
-  "email"      text        NOT NULL,
-  "phone"      text,
-  "company"    text,
-  "created_at" timestamptz NOT NULL DEFAULT now(),
+-- Per-tenant countries lookup.
+-- Seeded with a default list at provisioning time.
+-- Tenant admins can toggle is_active to control which countries
+-- appear in the Add Customer form.
+CREATE TABLE "countries" (
+  "id"        serial  NOT NULL,
+  "code"      char(2) NOT NULL,
+  "name"      text    NOT NULL,
+  "is_active" boolean NOT NULL DEFAULT true,
   PRIMARY KEY ("id"),
-  UNIQUE ("email")
+  UNIQUE ("code")
+);
+
+CREATE TABLE "customers" (
+  "id"           serial      NOT NULL,
+  "name"         text        NOT NULL,
+  "email"        text        NOT NULL,
+  "phone"        text,
+  "company"      text,
+  "country_code" char(2),
+  "created_at"   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  UNIQUE ("email"),
+  CONSTRAINT "customers_country_code_fkey"
+    FOREIGN KEY ("country_code") REFERENCES "countries"("code") ON DELETE SET NULL
 );
 
 CREATE TABLE "deals" (
-  "id"          serial       NOT NULL,
-  "title"       text         NOT NULL,
+  "id"          serial        NOT NULL,
+  "title"       text          NOT NULL,
   "value"       numeric(12,2) NOT NULL,
-  "stage"       text         NOT NULL,
-  "customer_id" integer      NOT NULL,
-  "created_at"  timestamptz  NOT NULL DEFAULT now(),
+  "stage"       text          NOT NULL,
+  "customer_id" integer       NOT NULL,
+  "created_at"  timestamptz   NOT NULL DEFAULT now(),
   PRIMARY KEY ("id"),
   CONSTRAINT "deals_customer_id_fkey"
     FOREIGN KEY ("customer_id") REFERENCES "customers"("id") ON DELETE CASCADE

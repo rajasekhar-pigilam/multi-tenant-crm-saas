@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Length, MaxLength } from 'class-validator';
 
 export class CreateCustomerDto {
   @ApiProperty({ example: 'Acme Industries' })
@@ -22,4 +22,14 @@ export class CreateCustomerDto {
   @IsString()
   @MaxLength(120)
   company?: string;
+
+  @ApiProperty({
+    example: 'US',
+    required: false,
+    description: 'ISO-2 country code. Must exist in the tenant countries table with is_active = true.'
+  })
+  @IsOptional()
+  @IsString()
+  @Length(2, 2)
+  countryCode?: string;
 }

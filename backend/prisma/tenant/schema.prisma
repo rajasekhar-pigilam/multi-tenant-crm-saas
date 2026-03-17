@@ -22,15 +22,27 @@ model User {
   @@map("users")
 }
 
+model Country {
+  id        Int        @id @default(autoincrement())
+  code      String     @unique @db.Char(2)
+  name      String
+  isActive  Boolean    @default(true) @map("is_active")
+  customers Customer[]
+
+  @@map("countries")
+}
+
 model Customer {
-  id         Int        @id @default(autoincrement())
-  name       String
-  email      String     @unique
-  phone      String?
-  company    String?
-  createdAt  DateTime   @default(now()) @map("created_at")
-  deals      Deal[]
-  activities Activity[]
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  phone       String?
+  company     String?
+  countryCode String?   @map("country_code") @db.Char(2)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  country     Country?  @relation(fields: [countryCode], references: [code])
+  deals       Deal[]
+  activities  Activity[]
 
   @@map("customers")
 }
