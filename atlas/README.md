@@ -1,0 +1,197 @@
+# Atlas Database Migrations
+
+Atlas is the **single source of truth** for all schema definitions.  
+Prisma is used **only** for ORM queries — never for schema management.
+
+Reference: [Atlas Versioned Migrations](https://atlasgo.io/versioned/intro)
+
+---
+
+## Directory structure
+
+```
+atlas/
+├── master/
+│   ├── schema.sql              ← edit this to change the master DB schema
+│   ├── 20250101000000_init.sql ← generated migration files (committed)
+│   └── atlas.sum               ← checksum file (auto-managed by Atlas)
+└── tenant/
+    ├── schema.sql              ← edit this to change ALL tenant DB schemas
+    ├── 20250101000000_init.sql ← generated migration files (committed)
+    └── atlas.sum               ← checksum file (auto-managed by Atlas)
+```
+
+---
+
+## Prerequisites
+
+```bash
+# Install Atlas CLI (macOS / Linux)
+curl -sSf https://atlasgo.sh | sh
+
+# Verify installation
+atlas version
+```
+
+See [Atlas installation docs](https://atlasgo.io/docs/getting-started/local-postgres#installation) for all platforms.
+
+---
+
+## First-time setup
+
+### 1. Set environment variables
+
+Copy `.env.example` to `.env` and fill in:
+
+```bash
+MASTER_DB_URL="postgresql://..."     # production master DB (Neon)
+TENANT_DEMO_DB_URL="postgresql://..."# demo tenant DB (Neon)
+ATLAS_DEV_DB_URL="docker://postgres/16/dev"  # scratch DB for diff
+# — OR for Neon-based dev —
+# ATLAS_DEV_DB_URL="postgresql://user:pass@host/atlas_dev_db?sslmode=require"
+```
+
+### 2. Generate the migration checksum (once after cloning)
+
+Atlas requires a checksum file to verify migrations haven't been tampered with.
+If `atlas.sum` is missing, generate it:
+
+```bash
+npm run atlas:hash:master   # regenerates atlas/master/atlas.sum
+npm run atlas:hash:tenant   # regenerates atlas/tenant/atlas.sum
+```
+
+---
+
+## Day-to-day workflow
+
+### Changing the master schema
+
+```bash
+# 1. Edit atlas/master/schema.sql
+
+# 2. Generate a new migration
+atlas migrate diff add_column_x --env master
+
+# 3. Review the generated file in atlas/master/
+# 4. Apply to production
+atlas migrate apply --env master
+
+# 5. Commit migration files + updated atlas.sum
+git add atlas/master/
+git commit -m "db: add column_x to master DB"
+```
+
+### Changing the tenant schema
+
+Every schema change is applied to **all** tenant databases.
+
+```bash
+# 1. Edit atlas/tenant/schema.sql
+
+# 2. Generate a new migration
+atlas migrate diff add_column_y --env tenant
+
+# 3. Review the generated file in atlas/tenant/
+
+# 4. Test against the demo tenant DB
+atlas migrate apply --env tenant
+
+# 5. Apply to ALL active tenant databases
+./scripts/atlas-migrate-all-tenants.sh
+
+# 6. Commit migration files + updated atlas.sum
+git add atlas/tenant/
+git commit -m "db: add column_y to tenant schema"
+```
+
+---
+
+## Neon branching for safe migration testing
+
+Use Neon branches to test migrations before applying to production.  
+**Do NOT create a branch per tenant.**
+
+```bash
+# 1. Create a Neon branch in the Console (Branches → Create Branch)
+# 2. Set the branch connection string in .env:
+NEON_DEV_BRANCH_URL="postgresql://user:pass@branch-host/db?sslmode=require"
+
+# 3. Apply migrations to the branch
+atlas migrate apply --env neon-dev
+
+# 4. Verify the branch is correct, then apply to production
+atlas migrate apply --env master
+```
+
+---
+
+## Applying migrations to a specific tenant database
+
+```bash
+# Single tenant
+./scripts/atlas-migrate-tenant.sh "$TENANT_ABC_DB_URL"
+
+# OR using npm script
+npm run atlas:tenant:apply-one -- "$TENANT_ABC_DB_URL"
+```
+
+## Applying migrations to all active tenants
+
+```bash
+MASTER_DB_URL="$MASTER_DB_URL" ./scripts/atlas-migrate-all-tenants.sh
+# OR
+npm run atlas:tenant:apply-all
+```
+
+---
+
+## Useful Atlas commands
+
+```bash
+# Check pending migrations
+atlas migrate status --env master
+atlas migrate status --env tenant
+
+# Inspect current schema (as SQL)
+atlas schema inspect --env master --format '{{ sql . }}'
+atlas schema inspect --env tenant --format '{{ sql . }}'
+
+# Validate migration files match atlas.sum
+atlas migrate validate --dir 'file://atlas/master'
+atlas migrate validate --dir 'file://atlas/tenant'
+
+# Regenerate checksums after manual edits
+atlas migrate hash --dir 'file://atlas/master'
+atlas migrate hash --dir 'file://atlas/tenant'
+```
+
+---
+
+## New tenant provisioning
+
+When a new tenant registers via `POST /api/tenants/register`:
+
+1. The API creates the Neon database (via Neon REST API)
+2. `TenantSchemaInitializerService` calls `atlas migrate apply` with the new DB URL
+3. The migrations in `atlas/tenant/` are applied atomically
+
+**In production (Vercel Lambda):** The Atlas Linux binary and migration files are
+bundled with the Lambda during the Vercel build (`scripts/prepare-vercel-output.js`),
+so `atlas migrate apply` runs inside the Lambda at provisioning time.
+
+**In local dev / CI:** Atlas CLI must be installed and on PATH.
+
+---
+
+## Rules
+
+| Rule | Detail |
+|------|--------|
+| Source of truth | `atlas/master/schema.sql` and `atlas/tenant/schema.sql` |
+| Migrations generated by | `atlas migrate diff` |
+| Migrations applied by | `atlas migrate apply` (CLI or Lambda-bundled binary) |
+| Prisma usage | ORM queries **only** — no schema management |
+| Custom migration runners | **Prohibited** in application code |
+| Embedded DDL in services | **Prohibited** |
+| Neon branches | Dev / testing only — not one per tenant |

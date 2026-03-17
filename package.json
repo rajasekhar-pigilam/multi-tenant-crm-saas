@@ -17,10 +17,22 @@
     "lint": "npm run lint --workspace backend && npm run lint --workspace frontend",
     "prisma:generate": "npm run prisma:generate:master --workspace backend && npm run prisma:generate:tenant --workspace backend",
     "prisma:seed": "npm run prisma:seed --workspace backend",
-    "atlas:master:diff": "npm run atlas:master:diff --workspace backend",
-    "atlas:master:apply": "npm run atlas:master:apply --workspace backend",
-    "atlas:tenant:diff": "npm run atlas:tenant:diff --workspace backend",
-    "atlas:tenant:apply": "npm run atlas:tenant:apply --workspace backend"
+
+    "atlas:master:diff": "atlas migrate diff --env master",
+    "atlas:master:apply": "atlas migrate apply --env master",
+    "atlas:master:status": "atlas migrate status --env master",
+    "atlas:master:inspect": "atlas schema inspect --env master --format '{{ sql . }}'",
+
+    "atlas:tenant:diff": "atlas migrate diff --env tenant",
+    "atlas:tenant:apply": "atlas migrate apply --env tenant",
+    "atlas:tenant:status": "atlas migrate status --env tenant",
+    "atlas:tenant:inspect": "atlas schema inspect --env tenant --format '{{ sql . }}'",
+
+    "atlas:tenant:apply-all": "./scripts/atlas-migrate-all-tenants.sh",
+    "atlas:tenant:apply-one": "./scripts/atlas-migrate-tenant.sh",
+
+    "atlas:hash:master": "atlas migrate hash --dir 'file://atlas/master'",
+    "atlas:hash:tenant": "atlas migrate hash --dir 'file://atlas/tenant'"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.3"

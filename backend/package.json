@@ -17,8 +17,12 @@
     "prisma:seed": "tsx prisma/seeds/seed.ts",
     "atlas:master:diff": "atlas migrate diff --env master",
     "atlas:master:apply": "atlas migrate apply --env master",
+    "atlas:master:status": "atlas migrate status --env master",
     "atlas:tenant:diff": "atlas migrate diff --env tenant",
-    "atlas:tenant:apply": "atlas migrate apply --env tenant"
+    "atlas:tenant:apply": "atlas migrate apply --env tenant",
+    "atlas:tenant:status": "atlas migrate status --env tenant",
+    "atlas:hash:master": "atlas migrate hash --dir 'file://atlas/master'",
+    "atlas:hash:tenant": "atlas migrate hash --dir 'file://atlas/tenant'"
   },
   "jest": {
     "moduleFileExtensions": ["js", "json", "ts"],
